@@ -1,5 +1,6 @@
-import { Fragment } from 'react'; // 이 줄을 추가하세요
 import { useState, useEffect, useMemo } from "react";
+
+import { users } from "./data/users";
 
 import { Button } from './components/common/Button';
 
@@ -11,32 +12,42 @@ import { ModalWaitOption } from './components/modal/ModalWaitOption';
 import { ModalMatchCreate } from './components/modal/ModalMatchCreate';
 
 function App() {
-    const [userList, setUserList] = useState([
-        { id: 1, name: "강백호", gender: "남", tier: "A", rating: 1850, status: "경기중", matchId: 101, groupId: null, preferredMatch: "남복", playCount: 2, joinedAt: 1713600000000, wins: 1, losses: 0 },
-        { id: 2, name: "서태웅", gender: "남", tier: "A", rating: 1900, status: "경기중", matchId: 101, groupId: null, preferredMatch: "남복", playCount: 2, joinedAt: 1713600005000, wins: 2, losses: 0 },
-        { id: 3, name: "채치수", gender: "남", tier: "B", rating: 1550, status: "경기중", matchId: 101, groupId: null, preferredMatch: "남복", playCount: 1, joinedAt: 1713600010000, wins: 0, losses: 1 },
-        { id: 4, name: "정대만", gender: "남", tier: "B", rating: 1600, status: "경기중", matchId: 101, groupId: null, preferredMatch: "", playCount: 1, joinedAt: 1713600015000, wins: 1, losses: 0 },
+    // userList useState
+    const [userList, setUserList] = useState(users);
+    // userList 데이터 변경시 마다 useEffect 재업데이트
+    useEffect(() => {
+        setUserList(users)
+        return () => { }
+    }, [users])
 
-        { id: 5, name: "송태섭", gender: "남", tier: "B", rating: 1520, status: "경기중", matchId: 102, groupId: "G1", preferredMatch: "혼복", playCount: 3, joinedAt: 1713600020000, wins: 1, losses: 1 },
-        { id: 6, name: "이한나", gender: "여", tier: "C", rating: 1200, status: "경기중", matchId: 102, groupId: "G1", preferredMatch: "혼복", playCount: 2, joinedAt: 1713600025000, wins: 1, losses: 0 },
-        { id: 7, name: "신준섭", gender: "남", tier: "A", rating: 1780, status: "경기중", matchId: 102, groupId: null, preferredMatch: "", playCount: 2, joinedAt: 1713600030000, wins: 2, losses: 0 },
-        { id: 8, name: "채소연", gender: "여", tier: "D", rating: 950, status: "경기중", matchId: 102, groupId: null, preferredMatch: "혼복", playCount: 1, joinedAt: 1713600035000, wins: 0, losses: 0 },
+    // user.status 상태에 따른 편의성 list *useMemo
+    const restingList = useMemo(() => {
+        return userList.filter(user => user.status === "휴식중");
+    }, [userList]) // 휴식중 
+    const watingList = useMemo(() => {
+        return userList.filter(user => user.status === "대기중");
+    }, [userList]) // 대기중
+    const waitingCategory = useMemo(() => {
+        const groups = { 자유: [], 혼복: [], 남복: [], 여복: [], };
 
-        { id: 9, name: "윤대협", gender: "남", tier: "A", rating: 1880, status: "대기중", matchId: null, groupId: "G2", preferredMatch: "혼복", playCount: 0, joinedAt: 1713601000000, wins: 0, losses: 0 },
-        { id: 15, name: "박희진", gender: "여", tier: "C", rating: 1250, status: "대기중", matchId: null, groupId: "G2", preferredMatch: "혼복", playCount: 0, joinedAt: 1713601400000, wins: 0, losses: 0 },
+        watingList.forEach(user => {
+            const preferred = (user.preferredMatch === "" || user.preferredMatch === "자유") ? "자유" : user.preferredMatch;
+            if (groups[preferred]) groups[preferred].push(user);
+        });
+        return groups
+    }, [watingList]) // 대기중 => preferredMatch category: list  
 
-        { id: 10, name: "성현준", gender: "남", tier: "B", rating: 1580, status: "대기중", matchId: null, groupId: null, preferredMatch: "남복", playCount: 0, joinedAt: 1713601050000, wins: 0, losses: 0 },
-        { id: 11, name: "김수겸", gender: "남", tier: "A", rating: 1820, status: "대기중", matchId: null, groupId: null, preferredMatch: "남복", playCount: 1, joinedAt: 1713600000000, wins: 1, losses: 0 },
-        { id: 12, name: "변덕규", gender: "남", tier: "B", rating: 1500, status: "대기중", matchId: null, groupId: null, preferredMatch: "남복", playCount: 2, joinedAt: 1713602000000, wins: 0, losses: 2 },
-        { id: 13, name: "허태환", gender: "남", tier: "C", rating: 1350, status: "대기중", matchId: null, groupId: null, preferredMatch: "", playCount: 0, joinedAt: 1713601200000, wins: 0, losses: 0 },
-        { id: 14, name: "안영수", gender: "남", tier: "C", rating: 1300, status: "대기중", matchId: null, groupId: null, preferredMatch: "남복", playCount: 3, joinedAt: 1713601300000, wins: 2, losses: 1 },
-        { id: 16, name: "김은실", gender: "여", tier: "B", rating: 1450, status: "대기중", matchId: null, groupId: null, preferredMatch: "여복", playCount: 0, joinedAt: 1713601500000, wins: 0, losses: 0 },
-        { id: 17, name: "황태산", gender: "남", tier: "A", rating: 1750, status: "대기중", matchId: null, groupId: null, preferredMatch: "", playCount: 1, joinedAt: 1713601600000, wins: 1, losses: 0 },
+    const playingList = useMemo(() => {
+        return userList.filter(user => user.status === "경기중");
+    }, [userList]) // 경기중
+    const matchIds = useMemo(() => {
+        return Array.from(
+            new Set(playingList.map(user => user.matchId))
+        );
+    }, [playingList]); // user.status를 기반으로 match ID 추출
 
-        { id: 18, name: "권준호", gender: "남", tier: "C", rating: 1100, status: "휴식중", matchId: null, groupId: null, preferredMatch: "", playCount: 2, joinedAt: 1713590000000, wins: 1, losses: 1 },
-        { id: 19, name: "이정환", gender: "남", tier: "A", rating: 1950, status: "휴식중", matchId: null, groupId: null, preferredMatch: "남복", playCount: 4, joinedAt: 1713591000000, wins: 4, losses: 0 },
-        { id: 20, name: "유경남", gender: "여", tier: "B", rating: 1480, status: "휴식중", matchId: null, groupId: null, preferredMatch: "", playCount: 1, joinedAt: 1713592000000, wins: 0, losses: 1 },
-    ]);
+    // 휴식중 유저 상태 변환
+    const [waitTargetId, setWaitTargetId] = useState(null);
 
     // *팝업* 경기 결과 on/off
     const [endingMatchId, setEndingMatchId] = useState(null);
@@ -57,48 +68,23 @@ function App() {
             setIsMatchModalOpen(false); // 팝업 닫기
         }
     };
-
-    // 휴식중 유저 상태 변환
-    const [waitTargetId, setWaitTargetId] = useState(null);
-
-    // Status 상태에 따른 편의성 list *useMemo
-    const restingList = useMemo(() => {
-        return userList.filter(user => user.status === "휴식중");
-    }, [userList])
-    const watingList = useMemo(() => {
-        return userList.filter(user => user.status === "대기중");
-    }, [userList])
-    const playingList = useMemo(() => {
-        return userList.filter(user => user.status === "경기중");
-    }, [userList])
-    // 경기중인 팀들의 나열 *useMemo
-    const matchIds = useMemo(() => {
-        return Array.from(
-            new Set(
-                userList
-                    .filter(user => user.status === "경기중")
-                    .map(user => user.matchId)
-            )
-        );
-    }, [playingList]);
-
     // 신규 유저 생성 샘플 *미완
-    const handleJoinWaitList = () => {
-        const newUser = {
-            id: Date.now(),
-            name: "나민턴",
-            tier: "A",
-            rating: 1400,
-            status: "대기중",
-            matchId: null,
-            preferredMatch: "자유",
-            playCount: "",
-            joinedAt: "",
-            wins: 0,
-            losses: 0
-        }
-        setUserList([...userList, newUser])
-    }
+    // const handleJoinWaitList = () => {
+    //     const newUser = {
+    //         id: Date.now(),
+    //         name: "나민턴",
+    //         tier: "A",
+    //         rating: 1400,
+    //         status: "대기중",
+    //         matchId: null,
+    //         preferredMatch: "자유",
+    //         playCount: "",
+    //         joinedAt: "",
+    //         wins: 0,
+    //         losses: 0
+    //     }
+    //     setUserList([...userList, newUser])
+    // }
     // UserCard 클릭시 상태 변화
     const toggleStatus = (targetId) => {
         const targetUser = userList.find(u => u.id === targetId);
@@ -120,14 +106,14 @@ function App() {
     }
     // 대기열 진입 시 파트너 생성 로직
     const confirmWait = (pref, partnerId) => {
-        const newGroupId = partnerId ? Number(`G_${Date.now()}`) : null;
+        const newGroupId = partnerId ? `G_${Date.now()}` : null;
 
         const updatedList = userList.map(user => {
             if (user.id === waitTargetId) {
-                return { ...user, status: "대기중", preferredMatch: pref, newGroupId: partnerId };
+                return { ...user, status: "대기중", preferredMatch: pref, groupId: partnerId };
             }
-            if (selectedPartnerId && user.id === Number(selectedPartnerId)) {
-                return { ...user, status: "대기중", preferredMatch: pref, newGroupId: partnerId };
+            if (partnerId && user.id === Number(partnerId)) {
+                return { ...user, status: "대기중", preferredMatch: pref, groupId: partnerId };
             }
             return user;
         });
@@ -166,46 +152,40 @@ function App() {
     return (
         <div className="min-h-screen h-full flex justify-center bg-gray-100">
             <div className="max-w-md w-full bg-white shadow-lg">
-                <header className="flex justify-between items-center text-xl text-white font-bold bg-blue-600 p-4">
+                <header className="flex justify-between items-center text-xl text-white font-bold bg-blue-600 py-2 px-4">
                     <h1>🏸 매니저</h1>
                     <Button onClick={() => setIsMatchModalOpen(true)}>매칭 짜기</Button>
                 </header>
-                <main className="flex-1 py-8  overflow-y-auto">
-                    <div className="resting-list flex flex-wrap gap-2 p-4">
+                <main className="flex-1 space-y-8 py-8 px-4  overflow-y-auto">
+                    <section className="resting-list flex flex-wrap gap-2 ">
                         <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
                             휴식중 <span className="text-sm text-blue-500 font-medium ml-2">{userList.filter(item => item.status === "휴식중").length}명</span>
                         </h4>
                         {restingList.map((user) => <UserCard key={user.id} user={user} onToggle={toggleStatus} />)}
-                    </div>
+                    </section>
 
-                    <div className="wating-list flex flex-col gap-2 p-4">
+                    <section className="wating-list flex flex-col gap-2 ">
                         <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
                             현재 대기열 <span className="text-sm text-blue-500 font-medium ml-2">{watingList.length}명</span>
                         </h4>
-                        {["자유", "혼복", "남복", "여복",].map((category) => {
-                            const filteredUsers = watingList.filter((user) => {
-                                const userPref = (user.preferredMatch === "" || user.preferredMatch === "자유")
-                                    ? "자유"
-                                    : user.preferredMatch;
-                                return userPref === category;
-                            });
 
-                            return (
-                                <div key={category} className="">
+                        <div className="wating-list-detail flex flex-col gap-2">
+                            {Object.entries(waitingCategory).map(([category, players]) => (
+                                <>
                                     <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-300 pb-1 mb-2">
-                                        {category} <span className="text-blue-500">{filteredUsers.length}명</span>
+                                        {category} <span className="text-blue-500">{players.length}명</span>
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {filteredUsers.map((user) => (
+                                        {players.map((user) => (
                                             <UserCard key={user.id} user={user} onToggle={toggleStatus} />
                                         ))}
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                </>
+                            ))}
+                        </div>
+                    </section>
 
-                    <div className="playing-list flex flex-wrap gap-2 p-4">
+                    <section className="playing-list flex flex-wrap gap-2 ">
                         <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
                             경기 진행중
                             <span className="text-sm text-blue-500 font-medium ml-2">
@@ -221,7 +201,7 @@ function App() {
                                 <MatchCard key={match} matchId={match} players={players} onOpenModal={setEndingMatchId} />
                             )
                         })}
-                    </div>
+                    </section>
                 </main>
 
                 {/* <nav className="fixed bottom-0 max-w-md w-full flex items-center justify-around bg-white border-top-solid"> */}
@@ -243,6 +223,7 @@ function App() {
                 {isMatchModalOpen && (
                     <ModalMatchCreate
                         userList={userList}
+                        waitingCategory={waitingCategory}
                         onClose={() => setIsMatchModalOpen(false)}
                         onMatchStart={startMatch}
                     />
