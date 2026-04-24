@@ -91,7 +91,7 @@ function App() {
             setUserList(updateList);
 
         } else if (targetUser.status === "휴식중") {
-            console.log("휴식중 클릭됨! ID:", targetId); // 안 열린다면 이 로그가 찍히는지 확인해보세요
+            console.log("휴식중 클릭됨! ID:", targetId);
             setWaitTargetId(targetId);
         }
     }
