@@ -1,6 +1,6 @@
 import React from 'react';
-import { UserCard } from './UserCard';
-import { Button } from './common/Button';
+import { UserCard } from '../card/UserCard';
+import { Button } from '../common/Button';
 
 
 export const MatchCard = ({ matchId, players, onOpenModal }) => {

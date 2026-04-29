@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../common/Button';
-import { UserCard } from '../UserCard';
+import { UserCard } from '../card/UserCard';
 
 export const ModalMatchCreate = ({ userList, waitingCategory, onClose, onMatchStart }) => {
   const [matchSlots, setMatchSlots] = useState([null, null, null, null]);

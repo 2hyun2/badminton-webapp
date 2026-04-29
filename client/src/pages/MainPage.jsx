@@ -3,8 +3,8 @@ import axios from "axios";
 
 import { Button } from "../components/common/Button"
 
-import { UserCard } from "../components/UserCard";
-import { MatchCard } from "../components/MatchCard";
+import { UserCard } from "../components/card/UserCard";
+import { MatchCard } from "../components/card/MatchCard";
 
 import { ModalMatchResult } from '../components/modal/ModalMatchResult';
 import { ModalWaitOption } from '../components/modal/ModalWaitOption';
