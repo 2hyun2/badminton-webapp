@@ -1,0 +1,4 @@
+@reference "tailwindcss";
+@layer components {
+  .default-layout { @apply flex-1 space-y-8 py-8 px-4 overflow-y-auto; }
+}
