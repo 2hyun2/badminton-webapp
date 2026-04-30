@@ -41,9 +41,9 @@ export const ModalMatchCreate = ({ userList, waitingCategory, onClose, onMatchSt
   };
 
   const handleConfirm = () => {
-    const selectedIds = matchSlots.map(u => u.id);
+    const selectedIds = matchSlots.filter(Boolean).map((u) => u.id);
     onMatchStart(selectedIds);
-  };
+  }; 
 
   const getAvg = (s1, s2) => s1 && s2 ? ((s1.rating + s2.rating) / 2).toFixed(0) : 0;
 

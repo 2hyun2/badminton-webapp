@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import useMatchStore from "../store/useMatchStore"; // 스토어 경로 확인!
+import useMatchStore from "../store/useMatchStore";
 
 import { Button } from "../components/common/Button"
 import { UserCard } from "../components/card/UserCard";
@@ -19,7 +19,8 @@ export const MainPage = () => {
         fetchUsers, 
         toggleUserStatus, 
         startMatch, 
-        endMatch 
+        endMatch,
+        updateUsers
     } = useMatchStore();
 
     useEffect(() => {
@@ -39,43 +40,38 @@ export const MainPage = () => {
     // 3. UI 제어를 위한 최소한의 로컬 상태만 유지
     const [waitTargetId, setWaitTargetId] = useState(null);
     const [endingMatchId, setEndingMatchId] = useState(null);
-    const [isMatchModalOpen, setIsMatchModalOpen] = useState(false);
+
 
     // 4. 핸들러 함수들
-    const handleToggleStatus = (targetId) => {
+    const handleToggleStatus = async (targetId) => {
         const targetUser = userList.find(u => u.id === targetId);
         
         if (targetUser.status === "대기중") {
-            toggleUserStatus(targetId);
+            // 서버에 상태 변경 요청
+            const updates = [{ id: targetId, status: "휴식중", groupId: "" }];
+            if (targetUser.groupId) {
+                // 그룹 멤버도 함께
+                const groupMembers = userList.filter(u => u.groupId === targetUser.groupId);
+                updates.push(...groupMembers.map(u => ({ id: u.id, status: "휴식중", groupId: "" })));
+            }
+            await updateUsers(updates);
         } else if (targetUser.status === "휴식중") {
             setWaitTargetId(targetId);
         }
     };
 
-    const confirmWait = (pref, partnerId) => {
-        const updatedList = userList.map(user => {
-            if (user.id === waitTargetId) {
-                return { ...user, status: "대기중", preferredMatch: pref, groupId: partnerId };
-            }
-            if (partnerId && user.id === Number(partnerId)) {
-                return { ...user, status: "대기중", preferredMatch: pref, groupId: partnerId };
-            }
-            return user;
-        });
-
-        useMatchStore.setState({ userList: updatedList }); 
+    const confirmWait = async (pref, partnerId) => {
+        const updates = [
+            { id: waitTargetId, status: "대기중", preferredMatch: pref, groupId: partnerId || "" }
+        ];
+        if (partnerId) {
+            updates.push({ id: Number(partnerId), status: "대기중", preferredMatch: pref, groupId: partnerId });
+        }
+        await updateUsers(updates);
         setWaitTargetId(null);
     };
 
-    const handleStartMatch = async () => {
-        const success = await startMatch(); 
-        if (success) {
-            alert("매칭 정보가 서버에 기록되었습니다!");
-            setIsMatchModalOpen(false); 
-        } else {
-            alert("서버 통신 오류가 발생했거나 인원이 부족합니다.");
-        }
-    };
+
 
     const handleMatchResult = async (winnerTeam) => {
         await endMatch(endingMatchId, winnerTeam); 
@@ -86,12 +82,8 @@ export const MainPage = () => {
     return (
         <div className="min-h-screen h-full flex justify-center bg-gray-100">
             <div className="max-w-md w-full bg-white shadow-lg">
-                <header className="flex justify-between items-center text-xl text-white font-bold bg-blue-600 py-2 px-4">
-                    <h1>🏸 매니저</h1>
-                    <Button onClick={() => setIsMatchModalOpen(true)}>매칭 짜기</Button>
-                </header>
                 
-                <main className="flex-1 space-y-8 py-8 px-4 overflow-y-auto">
+                <div className="flex-1 space-y-8 py-8 px-4 overflow-y-auto">
                     <section className="resting-list flex flex-wrap gap-2 ">
                         <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
                             휴식중 <span className="text-sm text-blue-500 font-medium ml-2">{restingList.length}명</span>
@@ -139,7 +131,7 @@ export const MainPage = () => {
                             )
                         })}
                     </section>
-                </main>
+                </div>
 
                 {endingMatchId && (
                     <ModalMatchResult onResult={handleMatchResult} onClose={() => setEndingMatchId(null)} />
@@ -147,15 +139,6 @@ export const MainPage = () => {
                 
                 {waitTargetId && (
                     <ModalWaitOption userList={userList} waitTargetId={waitTargetId} onClose={() => setWaitTargetId(null)} onConfirm={confirmWait} />
-                )}
-                
-                {isMatchModalOpen && (
-                    <ModalMatchCreate
-                        userList={userList}
-                        waitingCategory={waitingCategory}
-                        onClose={() => setIsMatchModalOpen(false)}
-                        onMatchStart={handleStartMatch} 
-                    />
                 )}
             </div>
         </div>

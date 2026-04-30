@@ -7,10 +7,9 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
     
     const modalRef = useRef(null);
 
-    // 모달 오픈 시 첫 번째 버튼에 포커스
+    // 모달 오픈 시 컨테이너에 포커스
     useEffect(() => {
-        const firstButton = modalRef.current?.querySelector('button');
-        if (firstButton) firstButton.focus();
+        if (modalRef.current) modalRef.current.focus();
     }, []);
 
     const handleConfirm = () => {
@@ -38,12 +37,13 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
         <div 
             className="modal-overlay" 
             onClick={(e) => e.target === e.currentTarget ? onClose() : null}
-            onKeyDown={handleKeyDown}
         >
             <div 
                 className="modal-container" 
                 ref={modalRef}
                 onClick={(e) => e.stopPropagation()}
+                onKeyDown={handleKeyDown}
+                tabIndex={-1}
             >
                 <h3 className="modal-title">대기열 등록</h3>
 
@@ -82,8 +82,8 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
                 </div>
 
                 <div className="flex gap-2">
-                    <Button onClick={onClose} size='md' variant="gray" className="flex-1">취-소 (ESC)</Button>
-                    <Button onClick={handleConfirm} size='md' variant="blue" className="flex-1">등-록 (Enter)</Button>
+                    <Button onClick={onClose} size='md' variant="gray" className="flex-1">취소</Button>
+                    <Button onClick={handleConfirm} size='md' variant="blue" className="flex-1">등록</Button>
                 </div>
             </div>
         </div>

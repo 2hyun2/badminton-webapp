@@ -1,5 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Outlet, Link } from 'react-router-dom';
+import { Button } from '../common/Button';
+import useMatchStore from "../../store/useMatchStore"; // 스토어 경로 확인!
+import { ModalMatchCreate } from '../modal/ModalMatchCreate';
+
+
 
 export const DefaultLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -7,6 +12,32 @@ export const DefaultLayout = () => {
   const closeMenu = () => setIsMenuOpen(false);
 
   const [isLogin, setIsLogin] = useState(false)
+  const [isMatchModalOpen, setIsMatchModalOpen] = useState(false);
+
+  const {
+    startMatch,
+    userList,
+    getWaitingList,
+    getWaitingCategory,
+    fetchUsers,
+  } = useMatchStore();
+
+  const waitingList = getWaitingList();
+  const waitingCategory = getWaitingCategory();
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleStartMatch = async (selectedIds) => {
+    const success = await startMatch(selectedIds);
+    if (success) {
+      alert("매칭 정보가 서버에 기록되었습니다!");
+      setIsMatchModalOpen(false);
+    } else {
+      alert("서버 통신 오류가 발생했거나 인원이 부족합니다.");
+    }
+  };
 
   return (
     <div className="layout default">
@@ -15,6 +46,7 @@ export const DefaultLayout = () => {
           <header className="relative flex justify-between items-center text-xl text-white font-bold bg-blue-600 py-2 px-4">
             <Link to={"/"}><h1>🏸 매니저</h1></Link>
             {/* <Button onClick={() => setIsMatchModalOpen(true)}>매칭 짜기</Button> */}
+            <Button onClick={() => setIsMatchModalOpen(true)}>매칭 짜기</Button>
             <button onClick={() => toggleMenu()}
               className="p-1 focus:outline-none hover:bg-blue-700 rounded-md transition-colors">
               {isMenuOpen
@@ -32,7 +64,7 @@ export const DefaultLayout = () => {
                 {isLogin
                   ? <Link to={'/logOut'} onClick={() => closeMenu()} className='text-right border-b py-2 px-4 transition-colors hover:text-blue-200'>LogOut</Link>
                   : <Link to={'/login'} onClick={() => closeMenu()} className='text-right border-b py-2 px-4 transition-colors hover:text-blue-200'>Login</Link>
-                }       
+                }
                 <Link to={'/record'} onClick={() => closeMenu()} className='text-right border-b py-2 px-4 transition-colors hover:text-blue-200'>Records</Link>
                 <Link to={'/ranking'} onClick={() => closeMenu()} className='text-right border-b py-2 px-4 transition-colors hover:text-blue-200'>Rankings</Link>
               </nav>
@@ -48,6 +80,15 @@ export const DefaultLayout = () => {
           <footer>
             @ 2026 badminton side project by hyun
           </footer>
+
+          {isMatchModalOpen && (
+            <ModalMatchCreate
+              userList={userList}
+              waitingCategory={waitingCategory}
+              onClose={() => setIsMatchModalOpen(false)}
+              onMatchStart={handleStartMatch}
+            />
+          )}
 
         </div>
       </div>
