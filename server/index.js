@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 
 const fs = require("fs"); // 파일 시스템 모듈
 const path = require("path") // 경로 설정 모듈
+const bcrypt = require('bcrypt')
 
 const app = express(); // express 객체 생성
 
@@ -53,6 +54,68 @@ const matchSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema, "badmintonsample");
 const Match = mongoose.model("Match", matchSchema);
 
+// 아이디 중복 확인
+app.post('/api/users/check-id', async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    // 아이디 입력 여부 확인
+    if (!username) return res.status(400).json({ isAvailable: false, message: '아이디를 입력해 주세요.' })
+    // DB에서 동일한 username이 있는지 조회
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) return res.status(400).json({ isAvailable: false, message: '이미 사용 중인 아이디입니다.' });
+    // 중복된 아이디가 없으면 사용 가능 반환
+    return res.status(200).json({ isAvailable: true, message: '사용 가능한 아이디입니다.' });
+
+  } catch (error) {
+    console.error('아이디 중복 체크 에러:', error);
+    return res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+  }
+});
+
+app.post('/api/users/register', async (req, res) => {
+  try {
+    const { username, password, name, gender } = req.body;
+
+    // 필수 입력값 검증
+    if (!username || !password || !name || !gender) {
+      return res.status(400).json({ message: '모든 정보를 입력해 주세요.' });
+    }
+
+    // [최종 수비] 가입 처리 직전 한 번 더 아이디 중복 체크
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: '이미 존재하는 아이디입니다.' });
+    }
+
+    // 고유 id 자동 생성 알고리즘 (1씩 증가)
+    // id를 기준으로 내림차순(-1) 정렬하여 가장 숫자가 큰 최근 유저 1명만 가져옴
+    const lastUser = await User.findOne().sort({ id: -1 });
+    // 유저가 한 명도 없으면 1번, 있으면 마지막 번호 + 1
+    const nextId = lastUser ? lastUser.id + 1 : 1;
+
+    // 비밀번호 암호화 (서버도 모르게 왜곡된 해시값 생성)
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // (rating, status, role, 전적 데이터 등은 스키마의 default 값이 있으므로 적지 않아도 자동 삽입!)
+    const newUser = new User({
+      id: nextId,           // 위에서 계산한 숫자 ID 필수 기입
+      username,
+      password: hashedPassword, // 암호화된 비밀번호 저장
+      name,
+      gender
+    });
+    // DB에 최종 저장
+    await newUser.save();
+
+    return res.status(201).json({ success: true, message: '회원가입이 완료되었습니다!' });
+
+  } catch (error) {
+    console.error('회원가입 처리 에러:', error);
+    return res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+  }
+});
 
 // 초기 유저 데이터 
 app.get("/api/users", async (req, res) => {

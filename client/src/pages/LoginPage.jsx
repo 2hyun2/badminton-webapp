@@ -40,7 +40,7 @@ export const LoginPage = () => {
 
         {/* Link를 버튼처럼 꾸미기 (회원가입 이동) */}
         <Link 
-          to="/join" 
+          to="/register" 
           className="w-full bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-xl text-center hover:bg-slate-50 transition-all"
         >
           회원가입

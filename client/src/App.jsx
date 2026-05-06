@@ -6,6 +6,10 @@ import { DefaultLayout } from './components/layout/DefaultLayout'
 
 import { MainPage } from './pages/MainPage'
 import { LoginPage } from './pages/LoginPage'
+import JoinPage from './pages/JoinPage'
+
+
+
 
 const App = () => {
   return (
@@ -13,8 +17,10 @@ const App = () => {
       <Route element={<DefaultLayout />}>
         <Route path='/' element={<MainPage />} />
         <Route path='/login' element={<LoginPage />} />
+        <Route path='/register' element={<JoinPage />} />
       </Route>
-
+      <Route>
+      </Route>
     </Routes>
   )
 }
