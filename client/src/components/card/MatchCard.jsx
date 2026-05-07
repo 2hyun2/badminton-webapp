@@ -4,6 +4,8 @@ import { Button } from '../common/Button';
 
 
 export const MatchCard = ({ matchId, players, onOpenModal }) => {
+    console.log(matchId);
+    console.log(players);
   // 1. 팀 나누기 (슬롯 순서대로 들어온다고 가정: 0,1은 A팀 / 2,3은 B팀)
   const teamAPlayers = players.slice(0, 2);
   const teamBPlayers = players.slice(2, 4);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useAuthStore from '../store/useAuthStore'; // 스토어 경로를 프로젝트에 맞게 조절해 주세요!
 
-const JoinPage = ({ onClose, onSwitchToLogin }) => {
+export const JoinPage = ({ onClose, onSwitchToLogin }) => {
   // 📋 폼 입력값 상태 관리
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -76,19 +76,14 @@ const JoinPage = ({ onClose, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+    <>
+    {/* <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4"> */}
       {/* 회원가입 카드 본체 */}
-      <div className="relative w-full max-w-md bg-white p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col align-center px-6 py-12 space-y-8">
         
         {/* 상단 타이틀 및 닫기 버튼 */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-800">🏸 클럽 회원가입</h2>
-          <button 
-            onClick={onClose} 
-            className="text-slate-400 hover:text-slate-600 text-lg font-bold"
-          >
-            ✕
-          </button>
         </div>
 
         {/* 회원가입 폼 */}
@@ -197,8 +192,6 @@ const JoinPage = ({ onClose, onSwitchToLogin }) => {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
-
-export default JoinPage;

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
+import { useQuery } from '@tanstack/react-query';
 import useMatchStore from "../store/useMatchStore";
+import axios from 'axios'
+
 
 import { Button } from "../components/common/Button"
 import { UserCard } from "../components/card/UserCard";
@@ -8,51 +11,27 @@ import { ModalMatchResult } from '../components/modal/ModalMatchResult';
 import { ModalWaitOption } from '../components/modal/ModalWaitOption';
 import { ModalMatchCreate } from '../components/modal/ModalMatchCreate';
 
+import { useUsers } from "../hooks/useUsers";
+
 export const MainPage = () => {
-    // 1. Store에서 모든 함수와 상태를 다 꺼내옵니다.
-    const { 
-        userList, // ⭐ 주의: 이 컴포넌트가 'userList'의 변화를 감지하고 화면을 다시 그리게 하려면 얘는 꼭 꺼내와야 합니다!
-        getWaitingList,
-        getRestingList,
-        getPlayingList,
-        getWaitingCategory,
-        fetchUsers, 
-        toggleUserStatus, 
-        startMatch, 
-        endMatch,
-        updateUsers
+
+    const { userList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, updateUsers } = useUsers();
+
+    const {
+        toggleUserStatus,
     } = useMatchStore();
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    // 2. useMemo 싹 날리고 Store에 만들어둔 함수를 그대로 직관적이게 사용!
-    const restingList = getRestingList();
-    const waitingList = getWaitingList();
-    const waitingCategory = getWaitingCategory();
-    const playingList = getPlayingList();
-    
-    // (이 부분은 playingList를 한 번 더 가공하는 거라 남겨뒀습니다. 
-    // 만약 matchIds도 다른 곳에서 쓴다면 스토어에 `getMatchIds: () => ...` 로 올리시면 완벽합니다!)
-    const matchIds = Array.from(new Set(playingList.map(user => user.matchId)));
-
-    // 3. UI 제어를 위한 최소한의 로컬 상태만 유지
     const [waitTargetId, setWaitTargetId] = useState(null);
     const [endingMatchId, setEndingMatchId] = useState(null);
 
-
-    // 4. 핸들러 함수들
     const handleToggleStatus = async (targetId) => {
         const targetUser = userList.find(u => u.id === targetId);
-        
+
         if (targetUser.status === "대기중") {
-            // 서버에 상태 변경 요청
             const updates = [{ id: targetId, status: "휴식중", groupId: "" }];
             if (targetUser.groupId) {
-                // 그룹 멤버도 함께
-                const groupMembers = userList.filter(u => u.groupId === targetUser.groupId);
-                updates.push(...groupMembers.map(u => ({ id: u.id, status: "휴식중", groupId: "" })));
+                const groupMembers = userList.filter(user => user.groupId === targetUser.groupId);
+                updates.push(...groupMembers.map(user => ({ id: user.id, status: "휴식중", groupId: "" })));
             }
             await updateUsers(updates);
         } else if (targetUser.status === "휴식중") {
@@ -71,76 +50,78 @@ export const MainPage = () => {
         setWaitTargetId(null);
     };
 
-
-
     const handleMatchResult = async (winnerTeam) => {
-        await endMatch(endingMatchId, winnerTeam); 
-        setEndingMatchId(null); 
+        await endMatch(endingMatchId, winnerTeam);
+        setEndingMatchId(null);
         alert(winnerTeam === 'cancel' ? "경기가 취소되었습니다." : "레이팅이 업데이트되었습니다!");
     };
 
     return (
-        <div className="min-h-screen h-full flex justify-center bg-gray-100">
-            <div className="max-w-md w-full bg-white shadow-lg">
-                
-                <div className="flex-1 space-y-8 py-8 px-4 overflow-y-auto">
-                    <section className="resting-list flex flex-wrap gap-2 ">
-                        <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
-                            휴식중 <span className="text-sm text-blue-500 font-medium ml-2">{restingList.length}명</span>
-                        </h4>
-                        {restingList.map((user) => (
-                            <UserCard key={user.id} user={user} onToggle={handleToggleStatus} />
-                        ))}
-                    </section>
+        <>
+            <div className="flex-1 space-y-8 py-8 px-4 overflow-y-auto">
+                {/* 휴식중 */}
+                <section className="resting-list flex flex-wrap gap-2 ">
+                    <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
+                        휴식중 <span className="text-sm text-blue-500 font-medium ml-2">{restingList.length}명</span>
+                    </h4>
+                    {restingList.map((user) => (
+                        <UserCard key={user.id} user={user} onToggle={handleToggleStatus} />
+                    ))}
+                </section>
+                {/* 대기열 */}
+                <section className="waiting-list flex flex-col gap-2 ">
+                    <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
+                        현재 대기열 <span className="text-sm text-blue-500 font-medium ml-2">{waitingList.length}명</span>
+                    </h4>
 
-                    <section className="waiting-list flex flex-col gap-2 ">
-                        <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
-                            현재 대기열 <span className="text-sm text-blue-500 font-medium ml-2">{waitingList.length}명</span>
-                        </h4>
-
-                        <div className="waiting-list-detail flex flex-col gap-2">
-                            {Object.entries(waitingCategory).map(([category, players]) => (
-                                <div key={category}>
-                                    <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-300 pb-1 mb-2">
-                                        {category} <span className="text-blue-500">{players.length}명</span>
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {players.map((user) => (
-                                            <UserCard key={user.id} user={user} onToggle={handleToggleStatus} />
-                                        ))}
-                                    </div>
+                    <div className="waiting-list-detail flex flex-col gap-2">
+                        {Object.entries(waitingCategory).map(([category, players]) => (
+                            <div key={category}>
+                                <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-300 pb-1 mb-2">
+                                    {category} <span className="text-blue-500">{players.length}명</span>
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {players.map((user) => (
+                                        <UserCard key={user.id} user={user} onToggle={handleToggleStatus} />
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </section>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+                {/* 경기중 */}
+                <section className="playing-list flex flex-wrap gap-2 ">
+                    <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
+                        경기 진행중
+                        <span className="text-sm text-blue-500 font-medium ml-2">
+                            {playingList.length}명
+                        </span>
+                    </h4>
+                    {playingList.map(match => {
+                        // 1. 해당 matchId를 가진 유저들을 찾아서 정렬
+                        const players = userList
+                            .filter(user => user.matchId === match)
+                            .sort((a, b) => (a.matchSlot || 0) - (b.matchSlot || 0));
 
-                    <section className="playing-list flex flex-wrap gap-2 ">
-                        <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
-                            경기 진행중
-                            <span className="text-sm text-blue-500 font-medium ml-2">
-                                {matchIds.length}팀
-                            </span>
-                        </h4>
-                        {matchIds.map(match => {
-                            const players = userList
-                                .filter(user => user.matchId === match)
-                                .sort((a, b) => (a.matchSlot || 0) - (b.matchSlot || 0));
-
-                            return (
-                                <MatchCard key={match} matchId={match} players={players} onOpenModal={setEndingMatchId} />
-                            )
-                        })}
-                    </section>
-                </div>
-
-                {endingMatchId && (
-                    <ModalMatchResult onResult={handleMatchResult} onClose={() => setEndingMatchId(null)} />
-                )}
-                
-                {waitTargetId && (
-                    <ModalWaitOption userList={userList} waitTargetId={waitTargetId} onClose={() => setWaitTargetId(null)} onConfirm={confirmWait} />
-                )}
+                        return (
+                            <MatchCard
+                                key={match}          // map의 key는 고유한 matchId 사용
+                                matchId={match}      // new Date() 대신 실제 matchId 전달 (중요!)
+                                players={players}
+                                onOpenModal={setEndingMatchId}
+                            />
+                        );
+                    })}
+                </section>
             </div>
-        </div>
+
+            {endingMatchId && (
+                <ModalMatchResult onResult={handleMatchResult} onClose={() => setEndingMatchId(null)} />
+            )}
+
+            {waitTargetId && (
+                <ModalWaitOption userList={userList} waitTargetId={waitTargetId} onClose={() => setWaitTargetId(null)} onConfirm={confirmWait} />
+            )}
+        </>
     )
 }
