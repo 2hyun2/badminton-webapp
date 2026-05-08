@@ -19,14 +19,18 @@ mongoose.connect(process.env.MONGO_URI)
 // 유저 모델: 로그인 정보 + 프로필 + 전적
 const userSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true }, // 기존에 쓰던 숫자 ID 유지
-    username: { type: String, unique: true, sparse: true },
-    password: { type: String },
-    name: String,
-    gender: String,
-    tier: String,
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true, unique: true },
+    birthday: { type: String, required: true },
+    name: { type: String, required: true},
+    gender: { type: String, required: true},
+    tier: { type: String, default: null },
     rating: { type: Number, default: 1500 },
     status: { type: String, default: "휴식중" },
     matchId: { type: Number, default: null },
+    isPresent: { type: Boolean, default: false }, // 현장 참석 여부
+    entryTime: { type: Date, default: null },    // 입장 시간
+    exitTime: { type: Date, default: null },     // 퇴장 시간
     matchSlot: { type: Number, default: null },
     groupId: { type: String, default: null },
     preferredMatch: { type: String, default: null },
@@ -75,10 +79,10 @@ app.post('/api/users/check-id', async (req, res) => {
 // 회원가입
 app.post('/api/users/register', async (req, res) => {
     try {
-        const { username, password, name, gender } = req.body;
+        const { username, password, birthday, name, gender } = req.body;
 
         // 필수 입력값 검증
-        if (!username || !password || !name || !gender) {
+        if (!username || !password || !birthday || !name || !gender) {
             return res.status(400).json({ message: '모든 정보를 입력해 주세요.' });
         }
 
@@ -102,6 +106,7 @@ app.post('/api/users/register', async (req, res) => {
             id: nextId,           // 위에서 계산한 숫자 ID 필수 기입
             username,
             password: hashedPassword, // 암호화된 비밀번호 저장
+            birthday,
             name,
             gender
         });
@@ -152,11 +157,86 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
+// 유저 입장 처리
+app.post('/api/users/entry', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            return res.status(400).json({ message: '사용자 ID가 필요합니다.' });
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { id: userId },
+            {
+                isPresent: true,
+                status: "휴식중", // 입장 시 기본 상태는 휴식중
+                entryTime: Date.now(),
+                exitTime: null,
+                matchId: null,
+                matchSlot: null,
+                groupId: null,
+                preferredMatch: null,
+            },
+            { new: true } // 업데이트된 문서를 반환
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        res.status(200).json({ success: true, message: `${updatedUser.name}님 입장 처리되었습니다.`, user: updatedUser });
+    } catch (error) {
+        console.error('유저 입장 처리 에러:', error);
+        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+    }
+});
+
+// 유저 퇴장 처리
+app.post('/api/users/exit', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) return res.status(400).json({ message: '사용자 ID가 필요합니다.' });
+
+        const exitingUser = await User.findOne({ id: userId });
+        if (!exitingUser) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+
+        let message = '퇴장 처리되었습니다.';
+
+        // 경기 중 퇴장 시 연쇄 무효화 로직
+        if (exitingUser.status === "경기중" && exitingUser.matchId) {
+            await User.updateMany(
+                { matchId: exitingUser.matchId },
+                { status: "휴식중", matchId: null, matchSlot: null, groupId: null }
+            );
+            message = `${exitingUser.name}님이 경기 중 퇴장하여 해당 경기가 무효화되었습니다.`;
+        }
+
+        await User.updateOne(
+            { id: userId },
+            { isPresent: false, status: "퇴장", exitTime: Date.now(), matchId: null, matchSlot: null, groupId: null, preferredMatch: null }
+        );
+        res.status(200).json({ success: true, message });
+    } catch (error) {
+        console.error('유저 퇴장 처리 에러:', error);
+        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+    }
+});
+
 // 초기 유저 데이터 
 app.get("/api/users", async (req, res) => {
     try {
         // rating 기준 내림차순(-1) 정렬
-        const users = await User.find().sort({ rating: -1 });
+        const users = await User.find().sort({ rating: -1 }); // 모든 유저를 가져옴
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: "데이터 로딩 실패" });
+    }
+});
+
+// 현장에 있는 유저 데이터 (isPresent: true)
+app.get("/api/users/present", async (req, res) => {
+    try {
+        const users = await User.find({ isPresent: true }).sort({ rating: -1 });
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: "데이터 로딩 실패" });
@@ -224,6 +304,7 @@ app.post("/api/match/end", async (req, res) => {
                 {
                     status: "휴식중",
                     matchId: null,
+                    // isPresent는 유지
                     matchSlot: null,
                     groupId: null,
                     playCount: winnerTeam === 'cancel' ? user.playCount : user.playCount + 1,

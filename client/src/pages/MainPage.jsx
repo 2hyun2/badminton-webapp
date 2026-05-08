@@ -1,28 +1,33 @@
 import { useState, useEffect } from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from "react-router-dom";
 import useMatchStore from "../store/useMatchStore";
-import axios from 'axios'
+import useAuthStore from "../store/useAuthStore";
 
-
-import { Button } from "../components/common/Button"
 import { UserCard } from "../components/card/UserCard";
 import { MatchCard } from "../components/card/MatchCard";
 import { ModalMatchResult } from '../components/modal/ModalMatchResult';
 import { ModalWaitOption } from '../components/modal/ModalWaitOption';
-import { ModalMatchCreate } from '../components/modal/ModalMatchCreate';
 
 import { useUsers } from "../hooks/useUsers";
 
 export const MainPage = () => {
+    const navigate = useNavigate();
+    const { user } = useAuthStore();
 
-    const { userList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, updateUsers } = useUsers();
+    const { userList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, endMatchMutation, updateUsers, endingMatchId, setEndingMatchId } = useUsers();
 
     const {
         toggleUserStatus,
     } = useMatchStore();
 
+    // 로그인 보호 로직
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+        }
+    }, [user, navigate]);
+
     const [waitTargetId, setWaitTargetId] = useState(null);
-    const [endingMatchId, setEndingMatchId] = useState(null);
 
     const handleToggleStatus = async (targetId) => {
         const targetUser = userList.find(u => u.id === targetId);
@@ -50,15 +55,20 @@ export const MainPage = () => {
         setWaitTargetId(null);
     };
 
-    const handleMatchResult = async (winnerTeam) => {
-        await endMatch(endingMatchId, winnerTeam);
-        setEndingMatchId(null);
-        alert(winnerTeam === 'cancel' ? "경기가 취소되었습니다." : "레이팅이 업데이트되었습니다!");
+    const handleMatchResult = (winnerTeam) => {
+        const payload = {
+            matchId: endingMatchId,
+            winnerTeam: winnerTeam,
+            scoreA: 0,
+            scoreB: 0
+        };
+        endMatchMutation.mutate(payload);
     };
 
     return (
         <>
-            <div className="flex-1 space-y-8 py-8 px-4 overflow-y-auto">
+
+            <div className="space-y-4">
                 {/* 휴식중 */}
                 <section className="resting-list flex flex-wrap gap-2 ">
                     <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
@@ -115,12 +125,13 @@ export const MainPage = () => {
                 </section>
             </div>
 
-            {endingMatchId && (
-                <ModalMatchResult onResult={handleMatchResult} onClose={() => setEndingMatchId(null)} />
-            )}
-
+            {/* 휴식중 => 대기중 팝업 */}
             {waitTargetId && (
                 <ModalWaitOption userList={userList} waitTargetId={waitTargetId} onClose={() => setWaitTargetId(null)} onConfirm={confirmWait} />
+            )}
+            {/* 경기 결과 팝업 */}
+            {endingMatchId && (
+                <ModalMatchResult onResult={handleMatchResult} onClose={() => setEndingMatchId(null)} />
             )}
         </>
     )

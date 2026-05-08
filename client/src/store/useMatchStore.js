@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const HOST = "http://localhost:5000";
+import api from '../hooks/api';
 
 const useMatchStore = create((set, get) => ({
   // state
