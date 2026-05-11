@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../hooks/api';
 
-const useAuthStore = create(persist((set) => ({
+const useAuthStore = create(persist((set, get) => ({
     user: null,
     isLoading: false,
     error: null,
@@ -22,9 +22,25 @@ const useAuthStore = create(persist((set) => ({
         }
     },
 
-    logoutUser: () => {
+    logoutUser: async () => {
+        const { user } = get();
+
+        // 사용자가 로그인 상태이고 '입장(isPresent: true)' 상태라면 서버에 퇴장 요청을 먼저 보냄
+        if (user && user.id && user.isPresent) {
+            try {
+                await api.post('/users/exit', { userId: user.id });
+            } catch (error) {
+                console.error('로그아웃 중 자동 퇴장 처리 실패:', error);
+            }
+        }
+
         set({ user: null, error: null, lastAction: null });
     },
+
+    // 입장/퇴장 업데이트 함수
+    updatePresent: (data) => set((state) => ({
+        user: state.user ? { ...state.user, ...data } : null
+    })),
 
     // 활동 시간 업데이트 함수
     updateActivity: () => {

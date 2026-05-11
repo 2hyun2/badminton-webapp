@@ -47,7 +47,7 @@ export const LoginPage = () => {
                     <div>
                         <label className="label-default">비밀번호</label>
                         <input
-                            type="password" className="input-default" value={password}
+                            type="password" className="input-default" value={password} autoComplete="current-password"
                             onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호 입력" required
                         />
                     </div>

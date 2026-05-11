@@ -43,7 +43,6 @@ export const JoinPage = () => {
             alert(result.message);
             setIsIdChecked(true);
             setCheckedUsername(username);
-            goNavigate()
         } else {
             alert(result.message);
             setIsIdChecked(false);
@@ -67,6 +66,7 @@ export const JoinPage = () => {
 
         if (result.success) {
             alert(result.message);
+            goNavigate;
         } else {
             alert(result.message);
         }
@@ -98,7 +98,7 @@ export const JoinPage = () => {
                     <div>
                         <label className="label-default" htmlFor='userPassword'>비밀번호</label>
                         <input
-                            type="password" className="input-default" value={password} id='userPassword'
+                            type="password" className="input-default" value={password} id='userPassword' autoComplete="new-password"
                             onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호 입력" required
                         />
                     </div>
@@ -107,7 +107,7 @@ export const JoinPage = () => {
                         <div className='flex-1'>
                             <label className="label-default" htmlFor='userBirthday'>생년월일</label>
                             <input
-                                type="text" val className="input-default"ue={birthday} id='userBirthday' maxLength={6}
+                                type="text" className="input-default" value={birthday} id='userBirthday' maxLength={6}
                                 onChange={(e) => setBirthday(e.target.value)} placeholder="생년월일 ex: 970208" required
                             />
                         </div>

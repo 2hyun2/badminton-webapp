@@ -1,24 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import api from "./api";
+import useAuthStore from "../store/useAuthStore";
+import { useSocket } from "./useSocket";
 
 export const useUsers = () => {
+    // useAuthStore 불러오기
+    const { updatePresent } = useAuthStore();
 
     // React Query 관리
     const queryClient = useQueryClient();
-    // 경기 종료 중인 상태를 관리하기 위한 state (기존 코드에서 누락됨)
     const [endingMatchId, setEndingMatchId] = useState(null);
+    const { on } = useSocket();
 
-    // useQuery로 서버단에서 데이터 불러오기
+    // 소켓 이벤트 분류 및 자동 리프레시 로직
+    useEffect(() => {
+        // 유저 업데이트 알림을 받으면 목록 새로고침
+        on('users:update', (data) => {
+            console.log(`[Socket] 유저 상태 변경 감지 (${data.type})`);
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+        });
+
+        // 매치 업데이트 알림을 받으면 목록 새로고침
+        on('match:update', (data) => {
+            console.log(`[Socket] 매치 상태 변경 감지 (${data.type})`);
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+        });
+
+    }, [on, queryClient]);
+
+    // useQuery 데이터 불러오기
     const { data: userList = [], isLoading, isError, refetch } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
-            const response = await api.get('/users/present'); // 현장에 있는 유저만 가져오도록 변경
+            const response = await api.get('/users/present'); // /users/present 는 출석 true 유저
             return response.data;
         },
     });
 
-    // useQuery 업데이트
+    // useMutation 업데이트 필요 함수
     const updateUserMutation = useMutation({
         mutationFn: async (updates) => {
             return await api.post('/users/update', { updates });
@@ -27,36 +47,39 @@ export const useUsers = () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
         },
     })
-
+    // useMutation 입장 처리
     const entryMutation = useMutation({
         mutationFn: async (userId) => {
             const response = await api.post('/users/entry', { userId });
             return response.data;
         },
         onSuccess: (data) => {
-            alert(data.message);
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            updatePresent({ isPresent: true, status: "휴식" });
+            if (data.message) alert(data.message);
         },
     });
-
+    // useMutation 퇴장 처리
     const exitMutation = useMutation({
         mutationFn: async (userId) => {
             const response = await api.post('/users/exit', { userId });
             return response.data;
         },
         onSuccess: (data) => {
-            alert(data.message);
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            // updatePresent를 사용하여 Zustand 스토어 업데이트
+            updatePresent({ isPresent: false, status: "" });
+            if (data.message) alert(data.message);
         },
     });
-
+    // useMutation 경기 결과 입력
     const endMatchMutation = useMutation({
         mutationFn: async (matchData) => {
             const response = await api.post('/match/end', matchData);
             return response.data;
         },
         onSuccess: (data) => {
-            alert(data.message);
+            if (data.message) alert(data.message);
             queryClient.invalidateQueries({ queryKey: ['users'] });
             setEndingMatchId(null);
         },
@@ -100,7 +123,7 @@ export const useUsers = () => {
         endMatchMutation, // 경기 결과 POST
         entryMutation,   // 입장 처리
         exitMutation,    // 퇴장 처리
-        updateUsers: updateUserMutation.mutate, // 유저 업데이트에 필요한 함수
+        updateUsers: updateUserMutation, // 유저 업데이트에 필요한 함수
         endingMatchId, // 현재 종료 처리 중인 경기 ID
         setEndingMatchId // 경기 종료 상태 변경 함수
     };

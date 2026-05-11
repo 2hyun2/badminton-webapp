@@ -3,6 +3,7 @@ import api from '../hooks/api';
 
 const useMatchStore = create((set, get) => ({
   // state
+  userList: [],
   selectedPlayerIds: [],
 
   toggleUserStatus: (targetId) => {
@@ -29,6 +30,7 @@ const useMatchStore = create((set, get) => ({
       set({ selectedPlayerIds: [...selectedPlayerIds, userId] });
     }
   },
+  resetSelection: () => set({ selectedPlayerIds: [] }),
 
 
 }));

@@ -7,6 +7,8 @@ import api from '../../hooks/api';
 import { ModalMatchCreate } from '../modal/ModalMatchCreate';
 import { useUsers } from '../../hooks/useUsers';
 import { Header } from './Header';
+import { Footer } from './Footer';
+import useAuthStore from '../../store/useAuthStore';
 
 
 export const DefaultLayout = () => {
@@ -14,7 +16,9 @@ export const DefaultLayout = () => {
 
     const queryClient = useQueryClient();
 
-    const { userList, waitingCategory } = useUsers()
+    const { userList, waitingCategory } = useUsers();
+    const { user } = useAuthStore();
+
 
     const startMatchMutation = useMutation({
         mutationFn: async (selectedIds) => {
@@ -38,17 +42,17 @@ export const DefaultLayout = () => {
 
     return (
         <div className="layout default">
-            <div className="min-h-screen h-full flex justify-center bg-gray-100">
-                <div className="max-w-md w-full bg-white shadow-lg">
-                    <Header onMatchCreate={() => setIsMatchModalOpen(true)} />
+            <div className={`flex justify-center min-h-screen bg-gray-100 ${user ? 'h-screen ' : 'h-full'}`}>
+                <div className="max-w-md w-full bg-white shadow-lg flex flex-col min-h-screen">
+                    <Header />
 
-                    <main className='content-center w-full min-h-screen py-8 px-4'>
+                    <main
+                        className={`w-full p-4 overflow-hidden overflow-y-auto flex-1 content-center`}
+                    >
                         <Outlet />
                     </main>
 
-                    {/* <footer className='fixed bottom-0'> */}
-                        {/* @ 2026 badminton side project by hyun */}
-                    {/* </footer> */}
+                    <Footer onMatchCreate={() => setIsMatchModalOpen(true)} />
 
                     {isMatchModalOpen && (
                         <ModalMatchCreate
