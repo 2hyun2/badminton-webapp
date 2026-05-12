@@ -13,23 +13,23 @@ export const useSocket = () => {
 
         // 연결 성공 시 이벤트
         socketRef.current.on('connect', () => {
-            console.log('Socket.io 서버에 연결되었습니다:', socketRef.current.id);
+            // console.log('Socket.io 서버에 연결되었습니다:', socketRef.current.id);
         });
 
         // 서버로부터 'world' 이벤트 수신 (서버 예시 코드에 맞춰)
         socketRef.current.on('world', (message) => {
-            console.log('서버로부터 "world" 메시지 수신:', message);
+            // console.log('서버로부터 "world" 메시지 수신:', message);
             alert(`서버 메시지: ${message}`); // 클라이언트에게 알림
         });
 
         // 연결 해제 시 이벤트
         socketRef.current.on('disconnect', () => {
-            console.log('Socket.io 서버와 연결이 해제되었습니다.');
+            // console.log('Socket.io 서버와 연결이 해제되었습니다.');
         });
 
         // 연결 에러 발생 시 이벤트
         socketRef.current.on('connect_error', (err) => {
-            console.error('Socket.io 연결 에러:', err.message);
+            // console.error('Socket.io 연결 에러:', err.message);
         });
 
         // 컴포넌트 언마운트 시 소켓 연결 해제

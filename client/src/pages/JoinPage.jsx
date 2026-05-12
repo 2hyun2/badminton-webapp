@@ -66,7 +66,7 @@ export const JoinPage = () => {
 
         if (result.success) {
             alert(result.message);
-            goNavigate;
+            goNavigate();
         } else {
             alert(result.message);
         }

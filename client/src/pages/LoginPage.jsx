@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useAuthStore from '../store/useAuthStore';
 import { useNavigate ,Link } from 'react-router-dom';
 import { Button } from '../components/common/Button';
@@ -7,12 +7,17 @@ export const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    const { loginUser, isLoading } = useAuthStore();
+    const { me, loginUser, isLoading } = useAuthStore();
 
     const  navigate = useNavigate();
 
     const goNavigate = () => navigate('/', { replace: true });
 
+    useEffect(() => {
+        if (me) {
+            goNavigate();
+        }
+    }, [me]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,7 +29,7 @@ export const LoginPage = () => {
 
         const result = await loginUser(username, password);
         if (result.success) {
-            alert(result.message);
+            result.message !== undefined ? alert(result.message) : null;
             goNavigate();
         } else {
             alert(result.message);

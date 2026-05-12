@@ -3,9 +3,9 @@ import useAuthStore from '../../store/useAuthStore'
 import { useUsers } from '../../hooks/useUsers';
 import { useSocket } from '../../hooks/useSocket'; // useSocket 훅 임포트
 
-export const Footer = ({ onMatchCreate }) => {
+export const Footer = ({ onMatchCreate, onStatusToggle }) => {
     const { user } = useAuthStore();
-    const { entryMutation, exitMutation } = useUsers();
+    const { me, entryMutation, exitMutation } = useUsers();
 
     const handleEntry = () => {
         if (!user) return;
@@ -18,7 +18,6 @@ export const Footer = ({ onMatchCreate }) => {
         exitMutation.mutate(user.id);
     };
 
-
     const btnBase = "flex items-center justify-center w-12 h-12 text-sm text-white font-bold rounded-full shadow-lg opacity-60 hover:opacity-100 transition-all duration-200 hover:-translate-y-1 active:scale-95";
 
     return (
@@ -29,6 +28,15 @@ export const Footer = ({ onMatchCreate }) => {
                         <div className="flex flex-col gap-2">
                             <button onClick={handleExit} className={`${btnBase} bg-rose-500 hover:bg-rose-600`} >퇴장</button>
                             <button onClick={onMatchCreate} className={`${btnBase} bg-blue-500 hover:bg-blue-600`} >매칭</button>
+                            <button
+                                onClick={onStatusToggle}
+                                className={`${btnBase} transition-colors ${me?.status === '대기중'
+                                        ? 'bg-amber-500 hover:bg-amber-600'
+                                        : 'bg-emerald-500 hover:bg-emerald-600'
+                                    }`}
+                            >
+                                {me?.status === '대기중' ? '휴식' : '대기'}
+                            </button>
                         </div>
                     ) : (
                         <button onClick={handleEntry} className={`${btnBase} bg-emerald-500 hover:bg-emerald-600`} >입장</button>

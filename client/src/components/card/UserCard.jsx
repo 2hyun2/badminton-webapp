@@ -3,31 +3,35 @@ import React from 'react'
 import { Mars, Venus } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 const statusColor = {
-  "대기중": "text-blue-700 bg-blue-100 border-blue-200",
+  "대기중": {
+    '남성': "text-blue-700 bg-blue-100 border-blue-200",
+    '여성': "text-rose-700 bg-rose-100 border-rose-200"
+  },
   "경기중": "text-red-700 bg-red-100 border-red-200",
   "휴식중": "text-emerald-700 bg-emerald-100 border-emerald-200"
 };
-// {
-// name,
-// gender
-// tier,
-// rating,
-// status,
-// matchId,
-// preferredMatch,
-// playCount,
-// joinedAt,
-// wins,
-// losses,
-// groupId
-// }
 
 export const UserCard = ({ user, onToggle }) => {
-  const GenderIcon = user.gender === '남' ? Mars : Venus;
+    console.log(user);
+  const GenderIcon = user.gender === '남성' ? Mars : Venus;
+
+  // 색상을 결정하는 로직 분리
+  const getStatusColor = () => {
+    const config = statusColor[user.status];
+    
+    // '대기중'처럼 성별 구분이 필요한 경우
+    if (typeof config === 'object' && config !== null) {
+      return config[user.gender] || "bg-gray-100";
+    }
+    
+    // '경기중', '휴식중'처럼 단일 문자열인 경우
+    return config || "bg-gray-100";
+  };
+
   return (
     <div
       onClick={() => onToggle(user.id)}
-      className={`${statusColor[user.status] || "bg-gray-100"} inline-flex rounded-lg border p-1 cursor-pointer transition-all`}
+      className={`${getStatusColor()} inline-flex rounded-lg border p-1 cursor-pointer transition-all`}
     >
       <div className="flex items-center gap-1 w-full font-semibold">
         <GenderIcon size={16} className="opacity-80" />
@@ -37,12 +41,20 @@ export const UserCard = ({ user, onToggle }) => {
         <span className="text-[12px] font-medium py-0.5 px-1 rounded bg-white/75 text-slate-700 shadow-inner">
           {user.rating}
         </span>
-        {user.groupId ?
-          <span className="text-[10px] text-red-500 ml-auto"> {user.groupId.slice(0, 4)}</span>
-          : null}
-        {user.playCount !== 0 ?
-          <span className="text-[10px] ml-auto">{user.playCount}</span>
-          : null}
+        
+        {/* 우측 정렬 아이템들 */}
+        <div className="ml-auto flex items-center gap-1">
+          {user.groupId && (
+            <span className="text-[10px] text-red-500 font-bold">
+              {user.groupId.slice(0, 4)}
+            </span>
+          )}
+          {user.playCount !== 0 && (
+            <span className="text-[10px] opacity-70">
+              {user.playCount}회
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
