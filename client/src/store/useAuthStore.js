@@ -23,18 +23,20 @@ const useAuthStore = create(persist((set, get) => ({
     },
 
     logoutUser: async () => {
-        const { user } = get();
+        const currentUser = get().user;
+        if (!currentUser) return;
 
-        // 사용자가 로그인 상태이고 '입장(isPresent: true)' 상태라면 서버에 퇴장 요청을 먼저 보냄
-        if (user && user.id && user.isPresent) {
+        // 상태를 즉시 null로 설정하여 다른 인터셉터나 컴포넌트에서 중복 로그아웃을 방지
+        set({ user: null, error: null, lastAction: null });
+
+        // 사용자가 '입장' 상태였다면 비동기로 퇴장 처리 (결과를 기다리지 않음)
+        if (currentUser.isPresent && currentUser.id) {
             try {
-                await api.post('/users/exit', { userId: user.id });
+                await api.post('/users/exit', { userId: currentUser.id });
             } catch (error) {
                 console.error('로그아웃 중 자동 퇴장 처리 실패:', error);
             }
         }
-
-        set({ user: null, error: null, lastAction: null });
     },
 
     // 입장/퇴장 업데이트 함수

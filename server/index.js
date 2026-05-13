@@ -44,7 +44,7 @@ const getKSTText = () => {
 const userSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
     username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     birthday: { type: String, required: true },
     name: { type: String, required: true },
     gender: { type: String, required: true },
@@ -151,16 +151,27 @@ app.post('/api/users/register', async (req, res) => {
 app.post('/api/users/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username }).select('+password');
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(400).json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' });
         }
-        const { password: _, ...userData } = user._doc;
+        const userData = user.toObject();
         res.status(200).json({ success: true, user: userData });
     } catch (error) {
         res.status(500).json({ message: '서버 에러' });
     }
 });
+
+// 전체 유저 조회
+app.get('/api/users', async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('유저 조회 에러:', error);
+        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+    }
+})
 
 // 현재 입장해 있는 유저 목록 조회
 app.get('/api/users/present', async (req, res) => {
@@ -331,6 +342,16 @@ app.post("/api/match/end", async (req, res) => {
         res.status(500).json({ message: "오류 발생" });
     }
 });
+
+// 경기 내역
+app.get('/api/match/history', async (req, res) => {
+    try {
+        const history = await Match.find().sort({ matchDate: -1 });
+        res.status(200).json(history);
+    } catch (error) {
+        res.status(500).json({ message: '서버 에러' });
+    }
+})
 
 // 서버 실행
 const PORT = 5000;
