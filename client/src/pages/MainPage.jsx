@@ -13,7 +13,7 @@ export const MainPage = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
-    const { userList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, endMatchMutation, updateUsers, endingMatchId, setEndingMatchId } = useUsers();
+    const { userList, presentList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, endMatchMutation, updateUsers, endingMatchId, setEndingMatchId } = useUsers();
 
     // 로그인 보호 로직
     useEffect(() => {
@@ -31,7 +31,7 @@ export const MainPage = () => {
         };
         endMatchMutation.mutate(payload);
     };
-
+    
     return (
         <>
             <div className="space-y-4">
@@ -74,15 +74,15 @@ export const MainPage = () => {
                         </span>
                     </h4>
                     {playingList.map(match => {
-                        const players = userList
-                            .filter(user => user.matchId === match)
-                            .sort((a, b) => (a.matchSlot || 0) - (b.matchSlot || 0));
+                        // const players = userList
+                            // .filter(user => user.matchId === match)
+                            // .sort((a, b) => (a.matchSlot || 0) - (b.matchSlot || 0));
 
                         return (
                             <MatchCard
-                                key={match}          // map의 key는 고유한 matchId 사용
-                                matchId={match}      // new Date() 대신 실제 matchId 전달 (중요!)
-                                players={players}
+                                key={match.matchId}
+                                matchId={match.matchId} // new Date() 대신 실제 matchId 전달 (중요!)
+                                players={match}
                                 onOpenModal={setEndingMatchId}
                             />
                         );

@@ -21,7 +21,11 @@ app.use(express.json());
 
 // MongoDB 연결
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB 연결 성공"))
+    .then(async () => {
+        console.log("MongoDB 연결 성공");
+        // 서버 시작 시 데이터가 비어있다면 초기 데이터 삽입
+        await seedUsers();
+    })
     .catch((err) => console.log("MongoDB 연결 실패:", err));
 
 // 서버 시간대를 최상위에서 Asia/Seoul로 설정해서 new Date로 변경

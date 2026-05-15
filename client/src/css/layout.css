@@ -1,11 +1,13 @@
 @reference "tailwindcss";
 @layer components {
-  .default-layout { @apply flex-1 space-y-8 py-8 px-4 overflow-y-auto; }
+    .default-layout { @apply flex-1 space-y-8 py-16 px-2 overflow-y-auto; }
 
-  .label-default { @apply block text-sm font-semibold text-slate-600 mb-1 }
-  .label-radio { @apply flex items-center gap-2 text-sm text-slate-700 cursor-pointer }
+    .label-default { @apply block text-sm font-semibold text-slate-600 mb-1 }
+    .label-radio { @apply flex items-center gap-2 text-sm text-slate-700 cursor-pointer }
 
-  .input-default { @apply w-full flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-500 }
-  .input-mini { @apply flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-500 }
-  .input-radio { @apply w-4 h-4 text-emerald-600 border-slate-500 border-2 rounded-full focus:ring-slate-900 }
+    .input-default { @apply w-full flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-500 }
+    .input-mini { @apply flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-500 }
+    .input-radio { @apply w-4 h-4 text-emerald-600 border-slate-500 border-2 rounded-full focus:ring-slate-900 }
+
+    .pages-title { @apply  text-2xl font-black text-center }
 }

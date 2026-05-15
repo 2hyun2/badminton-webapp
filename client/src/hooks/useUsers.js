@@ -44,7 +44,7 @@ export const useUsers = () => {
     const { data: userList = [], isLoading, isError, refetch } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
-            const response = await api.get('/users/present');
+            const response = await api.get('/users');
             const data = response.data;
             setUserList(data); // 매칭 스토어와 동기화
             return data;
@@ -115,7 +115,8 @@ export const useUsers = () => {
         }
     });
 
-    const { restingList, waitingList, playingList, waitingCategory, me } = useMemo(() => {
+    const { presentList, restingList, waitingList, playingList, waitingCategory, me } = useMemo(() => {
+        const presentList = userList.filter((user) => user.isPresent);
         // 경기 중인 유저들을 matchId별로 그룹화
         const playingMatchesMap = userList.reduce((acc, u) => {
             if (u.status === '경기중' && u.matchId) {
@@ -128,10 +129,9 @@ export const useUsers = () => {
         }, {});
 
         const playing = Object.values(playingMatchesMap).sort((a, b) => b.matchId - a.matchId);
-        const resting = userList.filter((user) => user.status === '휴식중');
-        const waiting = userList.filter((user) => user.status === '대기중');
+        const resting = presentList.filter((user) => user.status === '휴식중');
+        const waiting = presentList.filter((user) => user.status === '대기중');
 
-        // 전체 리스트에서 로그인한 '나'의 정보를 실시간으로 찾음
         const myInfo = authUser 
             ? userList.find(u => u.id === authUser.id) 
             : null;
@@ -141,6 +141,7 @@ export const useUsers = () => {
             groups[u.preferredMatch || "자유"]?.push(u));
 
         return {
+            presentList: presentList,
             restingList: resting,
             waitingList: waiting,
             waitingCategory: groups,
@@ -151,6 +152,7 @@ export const useUsers = () => {
 
     return {
         userList, // 원본 유저 데이터
+        presentList, // 출석 유저 데이터
         playingList, // 경기중 명단
         me, // 실시간 업데이트되는 '나'의 정보
         restingList, // 휴식중 명단

@@ -12,7 +12,6 @@ const statusColor = {
 };
 
 export const UserCard = ({ user, onToggle }) => {
-    console.log(user);
   const GenderIcon = user.gender === '남성' ? Mars : Venus;
 
   // 색상을 결정하는 로직 분리
@@ -25,38 +24,37 @@ export const UserCard = ({ user, onToggle }) => {
     }
     
     // '경기중', '휴식중'처럼 단일 문자열인 경우
-    return config || "bg-gray-100";
+    return config || "bg-black";
   };
 
   return (
     <div
-      onClick={() => onToggle(user.id)}
-      className={`${getStatusColor()} inline-flex rounded-lg border p-1 cursor-pointer transition-all`}
+      onClick={() => onToggle?.(user.id)}
+      className={`${getStatusColor()} inline-flex rounded-lg border p-1`}
     >
-      <div className="flex items-center gap-1 w-full font-semibold">
-        <GenderIcon size={16} className="opacity-80" />
-        <span className="text-base font-extrabold tracking-tight">
+      <div className="flex items-center gap-1">
+        <GenderIcon size={12} className="" />
+        <span className="text-sm font-semibold">
           {user.name}
         </span>
-        <span className="text-[12px] font-medium py-0.5 px-1 rounded bg-white/75 text-slate-700 shadow-inner">
+        <span className="text-xs font-medium py-0.25 px-1 rounded bg-white text-slate-700 shadow-inner">
           {user.rating}
         </span>
         
         {/* 우측 정렬 아이템들 */}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="flex items-center gap-1">
           {user.groupId && (
             <span className="text-[10px] text-red-500 font-bold">
               {user.groupId.slice(0, 4)}
             </span>
           )}
-          {user.playCount !== 0 && (
+          {/* {user.playCount !== 0 && (
             <span className="text-[10px] opacity-70">
               {user.playCount}회
             </span>
-          )}
+          )} */}
         </div>
       </div>
     </div>
   );
 };
-
