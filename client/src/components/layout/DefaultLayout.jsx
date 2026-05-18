@@ -10,7 +10,7 @@ export const DefaultLayout = () => {
     return (
         <div className="layout Default">
             <div className={`flex justify-center min-h-screen bg-gray-100`}>
-                <div className="max-w-md w-full bg-white shadow-lg flex flex-col min-h-screen">
+                <div className="flex flex-col min-h-screen justify-center max-w-md w-full bg-white shadow-lg ">
                     <main
                         className={`w-full p-4 overflow-hidden content-center`}
                     >

@@ -23,8 +23,6 @@ app.use(express.json());
 mongoose.connect(process.env.MONGO_URI)
     .then(async () => {
         console.log("MongoDB 연결 성공");
-        // 서버 시작 시 데이터가 비어있다면 초기 데이터 삽입
-        await seedUsers();
     })
     .catch((err) => console.log("MongoDB 연결 실패:", err));
 

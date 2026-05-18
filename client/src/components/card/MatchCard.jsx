@@ -1,11 +1,19 @@
 import React from 'react';
 import { UserCard } from '../card/UserCard';
 import { Button } from '../common/Button';
+import { useUsers } from '../../hooks/useUsers';
 
 
 export const MatchCard = ({ matchId, players, onOpenModal }) => {
+    const { me } = useUsers();
+    const isAdmin = me?.role === 'admin';
+
     const teamAPlayers = players.teamA;
     const teamBPlayers = players.teamB;
+
+    // match 변수 대신 props로 받은 players를 사용하고, 객체 배열이므로 some으로 ID 체크
+    const isPlayerInMatch = teamAPlayers.some(p => p.id === me?.id) || teamBPlayers.some(p => p.id === me?.id);
+    const hasPermission = isAdmin || isPlayerInMatch;
 
     const calculateAvg = (player) => {
         if (player.length === 0) return 0;
@@ -20,7 +28,8 @@ export const MatchCard = ({ matchId, players, onOpenModal }) => {
         <div className="w-full bg-slate-700 text-white rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-slate-800 p-2 flex items-center justify-between border-b border-white/50">
                 <span className="text-xs font-bold text-white tracking-wider">MATCH #{String(matchId).slice(-4)}</span>
-                <Button onClick={() => onOpenModal(matchId)} variant="blue" size="sm" className="h-7 text-xs">결과 입력</Button>
+                {hasPermission && (<Button onClick={() => onOpenModal(matchId)} variant="blue" size="sm" className="h-7 text-xs">결과 입력</Button>)}
+                
             </div>
 
             <div className="flex items-center justify-between text-xs py-4 px-2">
