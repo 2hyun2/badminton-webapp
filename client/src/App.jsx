@@ -10,6 +10,7 @@ import { LoginPage } from './pages/LoginPage'
 import { MatchHistory } from './components/MatchHistory'
 import { Record } from './components/Record'
 import { Ranking } from './components/Ranking'
+import { MyPage } from './components/MyPage'
 
 
 
@@ -22,10 +23,11 @@ const App = () => {
             </Route>
             <Route element={<ProtectedLayout />}>
                 <Route path='/' element={<MainPage />} />
-                <Route path='/history' element={<MatchHistory />} />
+                <Route path='/ranking' element={<Ranking />} />
                 <Route path='/record' element={<Record />} />
                 <Route path='/record/:id' element={<Record />} />
-                <Route path='/ranking' element={<Ranking />} />
+                <Route path='/history' element={<MatchHistory />} />
+                <Route path='/mypage' element={<MyPage />} />
             </Route>
         </Routes>
     )

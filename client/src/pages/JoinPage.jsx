@@ -126,14 +126,14 @@ export const JoinPage = () => {
                             <label className="label-radio">
                                 <input
                                     type="radio" className="input-radio" name="gender"
-                                    value="남성" checked={gender === '남성'} onChange={(e) => setGender(e.target.value)}
+                                    value="MALE" checked={gender === 'MALE'} onChange={(e) => setGender(e.target.value)}
                                 />
                                 남성
                             </label>
                             <label className="label-radio">
                                 <input
                                     type="radio" className="input-radio" name="gender"
-                                    value="여성" checked={gender === '여성'} onChange={(e) => setGender(e.target.value)}
+                                    value="FEMALE" checked={gender === 'FEMALE'} onChange={(e) => setGender(e.target.value)}
                                 />
                                 여성
                             </label>

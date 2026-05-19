@@ -1,6 +1,6 @@
 @reference "tailwindcss";
 @layer components {
-    .default-layout { @apply flex-1 space-y-8 py-16 px-2 overflow-y-auto; }
+    .default-layout { @apply flex-1 space-y-8 pt-2 pb-16 px-2 overflow-y-auto; }
 
     .label-default { @apply block text-sm font-semibold text-slate-600 mb-1 }
     .label-radio { @apply flex items-center gap-2 text-sm text-slate-700 cursor-pointer }

@@ -3,10 +3,10 @@ import { Button } from '../common/Button';
 import { UserCard } from '../card/UserCard';
 
 export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMatchStart }) => {
-    // 초기 슬롯 설정: 관리자가 아니면 본인(및 파트너)을 강제 포함
+    // 초기 슬롯 설정: ADMIN가 아니면 본인(및 파트너)을 강제 포함
     const [matchSlots, setMatchSlots] = useState(() => {
         let initialSlots = [null, null, null, null];
-        if (me && me.role !== '관리자') {
+        if (me && me.role !== 'ADMIN') {
             initialSlots[0] = me;
             if (me.groupId) {
                 const partner = userList.find(u => u.id !== me.id && u.groupId === me.groupId);
@@ -20,8 +20,8 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
         const isAlreadyIn = matchSlots.some(slot => slot && slot.id === clickedUser.id);
 
         if (isAlreadyIn) {
-            // 관리자가 아닌 경우 본인 또는 파트너는 해제 불가
-            if (me && me.role !== '관리자') {
+            // ADMIN가 아닌 경우 본인 또는 파트너는 해제 불가
+            if (me && me.role !== 'ADMIN') {
                 const isMeOrPartner = clickedUser.id === me.id || 
                                     (me.groupId && clickedUser.groupId === me.groupId);
                 if (isMeOrPartner) {

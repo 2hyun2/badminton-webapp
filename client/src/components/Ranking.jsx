@@ -100,7 +100,7 @@ export const Ranking = () => {
                 </button>
             ))}
             {/* N개월 필터 */}
-            {[1, 2, 3, 4, 5].map((value) => (
+            {[1, 2, 3].map((value) => (
                 <button
                     key={`${value}month`}
                     onClick={() => setFilterParam({ type: 'months', value: value.toString() })}

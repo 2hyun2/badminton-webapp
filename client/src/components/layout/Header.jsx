@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import { useUsers } from '../../hooks/useUsers';
 
@@ -10,6 +10,8 @@ export const Header = () => {
     const { user, logoutUser } = useAuthStore();
     const { me } = useUsers();
 
+    console.log(me);
+
     const myStand = () => {
         // 1. 로그인 전
         if (!me) return { color: 'bg-blue-600', text: '로그인 필요' };
@@ -18,11 +20,11 @@ export const Header = () => {
 
         // 3. 로그인 후 - 입장 상태
         switch (me.status) {
-            case '휴식중':
+            case 'RESTING':
                 return { color: 'bg-emerald-200 text-emerald-900', text: '휴식중' };
-            case '대기중':
+            case 'WAITING':
                 return { color: 'bg-blue-600 text-white', text: '매칭 대기중' };
-            case '경기중':
+            case 'PLAYING':
                 return { color: 'bg-red-500 text-white', text: '경기 진행중' };
             default:
                 return { color: 'bg-rose-500 text-white', text: '입장 확인됨' };
@@ -42,46 +44,42 @@ export const Header = () => {
     };
 
     return (
-        <>
-            <header className={`relative flex justify-between items-center w-full text-xl font-bold ${statusInfo.color} py-2 px-4 shadow-md transition-all duration-300`}>                <Link to="/" onClick={closeMenu}>
-                <h1 className="flex items-center gap-2">🏸 {statusInfo.text}</h1>
+        <header className={`relative flex justify-between items-center w-full ${statusInfo.color} p-2 shadow-md transition-all duration-300`}>
+            <Link to="/" onClick={closeMenu} className="">
+                <h1 className={`flex items-center text-lg font-bold `}>🏸 {statusInfo.text}</h1>
             </Link>
 
-                {/* 햄버거 버튼 */}
-                <button
-                    onClick={toggleMenu}
-                    className="p-1 focus:outline-none hover:bg-blue-700 rounded-md transition-colors"
-                    aria-label="Menu"
-                >
-                    {isMenuOpen ? (
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    ) : (
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    )}
-                </button>
+            {/* 햄버거 버튼 */}
+            <button onClick={toggleMenu} className="cursor-pointer" aria-label="Menu" >
+                {isMenuOpen ? (
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                ) : (
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                )}
+            </button>
 
-                {/* 햄버거 메뉴바 컨텐츠 */}
-                <div className={`
-                            absolute top-full left-0 w-full bg-blue-600 text-white shadow-xl z-50 overflow-hidden transition-all duration-300 ease-in-out
-                            ${isMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}
+            {/* 햄버거 메뉴바 컨텐츠 */}
+            <div className={`
+                            absolute top-full left-0 right-0 w-full text-white ${statusInfo.color} z-50 overflow-hidden transition-all duration-300 ease
+                            ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
                         `}>
-                    <nav className="flex flex-col border-t border-blue-500 text-lg">
-                        <Link to="/" onClick={closeMenu} className="text-right border-b border-blue-500 py-3 px-6 hover:bg-blue-700">Home</Link>
-                        <Link to="/history" onClick={closeMenu} className="text-right border-b border-blue-500 py-3 px-6 hover:bg-blue-700">History</Link>
-                        <Link to="/record" onClick={closeMenu} className="text-right border-b border-blue-500 py-3 px-6 hover:bg-blue-700">Records</Link>
-                        <Link to="/ranking" onClick={closeMenu} className="text-right border-b border-blue-500 py-3 px-6 hover:bg-blue-700">Rankings</Link>
-                        {user ? (
-                            <button onClick={handleLogout} className="text-right py-3 px-6 hover:bg-blue-700 text-blue-200">Logout</button>
-                        ) : (
-                            <Link to="/login" onClick={closeMenu} className="text-right py-3 px-6 hover:bg-blue-700">Login</Link>
-                        )}
-                    </nav>
-                </div>
-            </header>
-        </>
+                <nav className="flex flex-col text-base font-semibold text-right border-t border-slate-100 [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)]">
+                    <Link to="/" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Home</Link>
+                    <Link to="/ranking" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Rankings</Link>
+                    <Link to="/record" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Records</Link>
+                    <Link to="/history" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">History</Link>
+                    <Link to="/mypage" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">My Page</Link>
+                    {user ? (
+                        <button onClick={handleLogout} className="w-full text-right border-b border-slate-100 p-2 cursor-pointer [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)] hover:bg-blue-700">Logout</button>
+                    ) : (
+                        <Link to="/login" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Login</Link>
+                    )}
+                </nav>
+            </div>
+        </header>
     );
 };

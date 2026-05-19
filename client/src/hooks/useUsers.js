@@ -81,7 +81,7 @@ export const useUsers = () => {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
-            updatePresent({ isPresent: true, status: "휴식중" });
+            updatePresent({ isPresent: true, status: "RESTING" });
             if (data.message || data.message !== undefined) alert(data.message);
         },
     });
@@ -119,7 +119,7 @@ export const useUsers = () => {
         const presentList = userList.filter((user) => user.isPresent);
         // 경기 중인 유저들을 matchId별로 그룹화
         const playingMatchesMap = userList.reduce((acc, u) => {
-            if (u.status === '경기중' && u.matchId) {
+            if (u.status === 'PLAYING' && u.matchId) {
                 if (!acc[u.matchId]) acc[u.matchId] = { matchId: u.matchId, teamA: [], teamB: [] };
                 // matchSlot 0, 1은 Team A / 2, 3은 Team B
                 if (u.matchSlot === 0 || u.matchSlot === 1) acc[u.matchId].teamA.push(u);
@@ -129,8 +129,8 @@ export const useUsers = () => {
         }, {});
 
         const playing = Object.values(playingMatchesMap).sort((a, b) => b.matchId - a.matchId);
-        const resting = presentList.filter((user) => user.status === '휴식중');
-        const waiting = presentList.filter((user) => user.status === '대기중');
+        const resting = presentList.filter((user) => user.status === 'RESTING');
+        const waiting = presentList.filter((user) => user.status === 'WAITING');
 
         const myInfo = authUser 
             ? userList.find(u => u.id === authUser.id) 

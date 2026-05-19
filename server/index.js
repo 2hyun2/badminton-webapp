@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, required: true },
     tier: { type: String, default: null },
     rating: { type: Number, default: 1500 },
-    status: { type: String, default: "IDLE" },
+    status: { type: String, default: "RESTING" },
     matchId: { type: Number, default: null },
     isPresent: { type: Boolean, default: false },
     entryTime: { type: Date, default: null },
@@ -184,7 +184,7 @@ app.post('/api/users/entry', async (req, res) => {
         const { userId } = req.body;
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { isPresent: true, status: "IDLE", entryTime: getKSTNow(), exitTime: null, updatedAt: getKSTNow() },
+            { isPresent: true, status: "RESTING", entryTime: getKSTNow(), exitTime: null, updatedAt: getKSTNow() },
             { new: true }
         );
         if (!updatedUser) return res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
@@ -202,7 +202,7 @@ app.post('/api/users/exit', async (req, res) => {
         if (!exitingUser) return res.status(404).json({ message: '유저 없음' });
 
         if (exitingUser.status === "PLAYING" && exitingUser.matchId) {
-            await User.updateMany({ matchId: exitingUser.matchId }, { status: "IDLE", matchId: null, updatedAt: getKSTNow() });
+            await User.updateMany({ matchId: exitingUser.matchId }, { status: "RESTING", matchId: null, updatedAt: getKSTNow() });
         }
 
         await User.updateOne({ id: userId }, { isPresent: false, status: "OFFLINE", exitTime: getKSTNow(), updatedAt: getKSTNow() });
@@ -300,7 +300,7 @@ app.post("/api/match/end", async (req, res) => {
             const change = isTeamA ? ratingChange : -ratingChange;
 
             const updateDoc = {
-                $set: { status: "IDLE", matchId: null, matchSlot: null, updatedAt: getKSTNow() }
+                $set: { status: "RESTING", matchId: null, matchSlot: null, updatedAt: getKSTNow() }
             };
 
             // 취소가 아닌 경우에만 스탯 업데이트 (Atomic $inc 사용)

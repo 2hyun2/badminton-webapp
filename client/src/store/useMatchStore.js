@@ -13,11 +13,11 @@ const useMatchStore = create((set, get) => ({
     const { userList } = get();
     const targetUser = userList.find(user => user.id === targetId);
 
-    if (targetUser.status === "대기중") {
+    if (targetUser.status === "WAITING") {
       const updated = userList.map(user => {
         // 그룹으로 묶인 user 존재시 같이 휴식중 변환
         if (user.id === targetId || targetUser.groupId && user.groupId === targetUser.groupId) {
-          return { ...user, status: "휴식중", groupId: null };
+          return { ...user, status: "RESTING", groupId: null };
         }
         return user;
       });

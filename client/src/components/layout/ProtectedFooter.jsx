@@ -34,14 +34,14 @@ export const ProtectedFooter = ({ onMatchCreate, onStatusToggle }) => {
                         <>
                             {me?.isPresent
                                 ? (
-                                    me?.status !== '경기중'
+                                    me?.status !== 'PLAYING'
                                     ?
                                     <div className="flex flex-wrap gap-2">
-                                        {me?.status === '대기중' ? <button onClick={onMatchCreate} className={`${btnBase} bg-blue-500 hover:bg-blue-600`} >매칭</button> : null}
+                                        {me?.status === 'WAITING' ? <button onClick={onMatchCreate} className={`${btnBase} bg-blue-500 hover:bg-blue-600`} >매칭</button> : null}
                                         <button
                                             onClick={onStatusToggle}
-                                            className={`${btnBase} transition-colors ${me?.status === '대기중' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
-                                            {me?.status === '대기중' ? '휴식' : '대기'}
+                                            className={`${btnBase} transition-colors ${me?.status === 'WAITING' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
+                                            {me?.status === 'WAITING' ? '휴식' : '대기'}
                                         </button>
                                         <button onClick={handleExit} className={`${btnBase} bg-rose-500 hover:bg-rose-600`} >퇴장</button>
                                     </div>
