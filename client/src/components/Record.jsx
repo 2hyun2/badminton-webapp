@@ -1,8 +1,8 @@
 import { React, useState, useEffect, useMemo } from 'react'
-import { useUsers } from '../../hooks/useUsers'
-import { useMatches } from '../../hooks/useMatches'
+import { useUsers } from '../hooks/useUsers'
+import { useMatches } from '../hooks/useMatches'
 import { useNavigate } from 'react-router-dom'
-import { UserCard } from '../card/UserCard'
+import { UserCard } from './card/UserCard'
 
 export const Record = () => {
     const navigate = useNavigate();

@@ -7,8 +7,10 @@ import { ProtectedLayout } from './components/layout/ProtectedLayout'
 import { MainPage } from './pages/MainPage'
 import { JoinPage } from './pages/JoinPage'
 import { LoginPage } from './pages/LoginPage'
-import { MatchHistory } from './components/history/MatchHistory'
-import { Record } from './components/record/Record'
+import { MatchHistory } from './components/MatchHistory'
+import { Record } from './components/Record'
+import { Ranking } from './components/Ranking'
+
 
 
 const App = () => {
@@ -23,6 +25,7 @@ const App = () => {
                 <Route path='/history' element={<MatchHistory />} />
                 <Route path='/record' element={<Record />} />
                 <Route path='/record/:id' element={<Record />} />
+                <Route path='/ranking' element={<Ranking />} />
             </Route>
         </Routes>
     )

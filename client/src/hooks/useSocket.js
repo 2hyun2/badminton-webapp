@@ -1,15 +1,20 @@
 import { useEffect, useRef } from 'react';
 import io from 'socket.io-client';
+import useAuthStore from '../store/useAuthStore';
 
 // Socket.io 서버 주소 (서버의 PORT와 동일해야 합니다)
 const SOCKET_SERVER_URL = 'http://localhost:5000';
 
 export const useSocket = () => {
     const socketRef = useRef(null);
+    const updateActivity = useAuthStore(state => state.updateActivity);
 
     useEffect(() => {
         // 소켓 연결 초기화
-        socketRef.current = io(SOCKET_SERVER_URL);
+        socketRef.current = io(SOCKET_SERVER_URL, {
+            transports: ['websocket'], // polling을 건너뛰고 바로 websocket 사용
+            forceNew: true,            // 새로운 연결 강제
+        });
 
         // 연결 성공 시 이벤트
         socketRef.current.on('connect', () => {
@@ -17,8 +22,9 @@ export const useSocket = () => {
         });
 
         // 서버로부터 'world' 이벤트 수신 (서버 예시 코드에 맞춰)
-        socketRef.current.on('world', (message) => {
+        socketRef.current.on('any_event_from_server', (message) => {
             // console.log('서버로부터 "world" 메시지 수신:', message);
+            updateActivity(); // 서버에서 데이터가 올 때도 활동으로 간주
             alert(`서버 메시지: ${message}`); // 클라이언트에게 알림
         });
 

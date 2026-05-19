@@ -24,7 +24,7 @@ export const UserCard = ({ user, onToggle }) => {
     }
     
     // '경기중', '휴식중'처럼 단일 문자열인 경우
-    return config || "bg-black";
+    return config || "bg-gray-100";
   };
 
   return (

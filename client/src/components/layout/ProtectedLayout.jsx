@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 
 import api from '../../hooks/api';
 
@@ -15,7 +15,20 @@ export const ProtectedLayout = () => {
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false); // 매칭 팝업 boolean
     const [waitTargetId, setWaitTargetId] = useState(null); // 모달 제어용 ID (기본값 null)
 
-    const { me, user, userList, updateUsers, startMatchMutation, waitingCategory } = useUsers();
+    const { user } = useAuthStore(); // 로그인 세션 정보는 AuthStore에서 직접 가져옵니다.
+    const { me, userList, updateUsers, startMatchMutation, waitingCategory } = useUsers();
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!user) {
+            navigate('/login', { replace: true })
+        }
+    }, [user, navigate])
+
+    // 만약 로그인은 되어있는데(user 존재), 아직 서버에서 상세 정보(me)를 가져오는 중이라면 
+    // 하위 컴포넌트나 UI가 깨지지 않도록 로딩 처리를 해줍니다.
+    if (user && !me) return <div className="p-10 text-center">사용자 정보를 확인 중...</div>;
 
     const handleStartMatch = (selectedIds) => {
         startMatchMutation.mutate(selectedIds, {
@@ -26,12 +39,12 @@ export const ProtectedLayout = () => {
     const handleWaitConfirm = async (selectedPref, selectedPartnerId) => {
         if (!me) return;
         
-        let updates = [{ id: me.id, status: "대기중", preferredMatch: selectedPref }];
+        let updates = [{ id: me.id, status: "WAITING", preferredMatch: selectedPref }];
         
         if (selectedPartnerId) {
             const groupId = Date.now().toString();
             updates[0].groupId = groupId; // 본인에게도 groupId 부여
-            updates.push({ id: selectedPartnerId, status: "대기중", preferredMatch: selectedPref, groupId: groupId });
+            updates.push({ id: selectedPartnerId, status: "WAITING", preferredMatch: selectedPref, groupId: groupId });
         }
 
         try {
@@ -46,19 +59,19 @@ export const ProtectedLayout = () => {
     const toggleUserStatus = async () => {
         if (!me) return;
 
-        if (me.status === "대기중") {
-            const updates = [{ id: me.id, status: "휴식중", groupId: null }];
+        if (me.status === "WAITING") {
+            const updates = [{ id: me.id, status: "IDLE", groupId: null }];
             // groupId가 있는 경우, 같은 그룹원(파트너)도 함께 휴식중으로 변경
             if (me.groupId) {
                 const partners = userList.filter(user => user.groupId === me.groupId && user.id !== me.id);
-                updates.push(...partners.map(user => ({ id: user.id, status: "휴식중", groupId: null })));
+                updates.push(...partners.map(user => ({ id: user.id, status: "IDLE", groupId: null })));
             }
             try {
                 await updateUsers.mutateAsync(updates);
             } catch (error) {
                 console.error("휴식 전환 실패:", error);
             }
-        } else if (me.status === "휴식중") {
+        } else if (me.status === "IDLE") {
             setWaitTargetId(me.id);
         }
     };

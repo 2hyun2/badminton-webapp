@@ -12,7 +12,8 @@ const httpServer = http.createServer(app);
 const io = new SocketIOServer(httpServer, {
     cors: {
         origin: "http://localhost:5173",
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
@@ -28,18 +29,6 @@ mongoose.connect(process.env.MONGO_URI)
 
 // 서버 시간대를 최상위에서 Asia/Seoul로 설정해서 new Date로 변경
 const getKSTNow = () => new Date();
-const getKSTText = () => {
-    return new Date().toLocaleString("ko-KR", { // 1. 한국(ko-KR) 언어 규격을 사용
-        timeZone: "Asia/Seoul", // 2. 서버 위치와 상관없이 '서울' 시간대 적용
-        year: "numeric", // 3. 연도 (예: 2026)
-        month: "2-digit", // 4. 월 (05월 처럼 2자리로)
-        day: "2-digit", // 5. 일 (12일 처럼 2자리로)
-        hour: "2-digit", // 6. 시 (2자리)
-        minute: "2-digit", // 7. 분 (2자리)
-        second: "2-digit", // 8. 초 (2자리)
-        hour12: false, // 9. 오전/오후 대신 24시간 형식 사용
-    });
-};
 
 // 데이터베이스 구조 정의 (형식)
 // 유저 기본 스키마
@@ -52,7 +41,7 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, required: true },
     tier: { type: String, default: null },
     rating: { type: Number, default: 1500 },
-    status: { type: String, default: "휴식중" },
+    status: { type: String, default: "IDLE" },
     matchId: { type: Number, default: null },
     isPresent: { type: Boolean, default: false },
     entryTime: { type: Date, default: null },
@@ -79,6 +68,9 @@ const matchSchema = new mongoose.Schema({
     eloDelta: Number,
     matchType: String,
 });
+// 날짜 기반 조회를 위해 인덱스 추가 (조회 성능 최적화)
+matchSchema.index({ matchDate: -1 });
+
 //  (변수명,  스키마(구조), DB Table name: default = users)
 /**
      * User 모델: 'badmintonsample' 컬렉션(표)에 접근
@@ -192,7 +184,7 @@ app.post('/api/users/entry', async (req, res) => {
         const { userId } = req.body;
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { isPresent: true, status: "휴식중", entryTime: getKSTNow(), exitTime: null, updatedAt: getKSTNow() },
+            { isPresent: true, status: "IDLE", entryTime: getKSTNow(), exitTime: null, updatedAt: getKSTNow() },
             { new: true }
         );
         if (!updatedUser) return res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
@@ -209,11 +201,11 @@ app.post('/api/users/exit', async (req, res) => {
         const exitingUser = await User.findOne({ id: userId });
         if (!exitingUser) return res.status(404).json({ message: '유저 없음' });
 
-        if (exitingUser.status === "경기중" && exitingUser.matchId) {
-            await User.updateMany({ matchId: exitingUser.matchId }, { status: "휴식중", matchId: null, updatedAt: getKSTNow() });
+        if (exitingUser.status === "PLAYING" && exitingUser.matchId) {
+            await User.updateMany({ matchId: exitingUser.matchId }, { status: "IDLE", matchId: null, updatedAt: getKSTNow() });
         }
 
-        await User.updateOne({ id: userId }, { isPresent: false, status: "퇴장", exitTime: getKSTNow(), updatedAt: getKSTNow() });
+        await User.updateOne({ id: userId }, { isPresent: false, status: "OFFLINE", exitTime: getKSTNow(), updatedAt: getKSTNow() });
         io.emit('users:update', { type: 'EXIT', userId });
         res.status(200).json({ success: true });
     } catch (error) {
@@ -267,7 +259,7 @@ app.post("/api/match/start", async (req, res) => {
         const bulkOps = selectedIds.map((id, index) => ({
             updateOne: {
                 filter: { id },
-                update: { $set: { status: "경기중", matchId: newMatchId, matchSlot: index, groupId: null, updatedAt: getKSTNow() } }
+                update: { $set: { status: "PLAYING", matchId: newMatchId, matchSlot: index, groupId: null, updatedAt: getKSTNow() } }
             }
         }));
         await User.bulkWrite(bulkOps);
@@ -308,7 +300,7 @@ app.post("/api/match/end", async (req, res) => {
             const change = isTeamA ? ratingChange : -ratingChange;
 
             const updateDoc = {
-                $set: { status: "휴식중", matchId: null, matchSlot: null, updatedAt: getKSTNow() }
+                $set: { status: "IDLE", matchId: null, matchSlot: null, updatedAt: getKSTNow() }
             };
 
             // 취소가 아닌 경우에만 스탯 업데이트 (Atomic $inc 사용)
@@ -348,12 +340,45 @@ app.post("/api/match/end", async (req, res) => {
 // 경기 내역
 app.get('/api/match/history', async (req, res) => {
     try {
-        const history = await Match.find().sort({ matchDate: -1 });
+        const { period, months } = req.query; // 'weekly', 'monthly', 'total', or 'months' (e.g., '1', '3', '5')
+        let query = {};
+
+        if (period === 'weekly') {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            query.matchDate = { $gte: oneWeekAgo };
+        } else if (period === 'monthly') {
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            query.matchDate = { $gte: oneMonthAgo };
+        } else if (months && !isNaN(parseInt(months))) { // 'months' 파라미터 처리
+            const numMonths = parseInt(months);
+            const NMonthsAgo = new Date();
+            NMonthsAgo.setMonth(NMonthsAgo.getMonth() - numMonths);
+            query.matchDate = { $gte: NMonthsAgo };
+        }
+        // 'total'인 경우 쿼리 조건 없음
+        // 'months'가 없거나 유효하지 않으면 'total'과 동일하게 모든 기록 조회
+
+        const history = await Match.find(query).sort({ matchDate: -1 });
         res.status(200).json(history);
     } catch (error) {
         res.status(500).json({ message: '서버 에러' });
     }
 })
+
+// 특정 유저의 경기 내역 조회
+app.get('/api/match/history/:userId', async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId);
+        const history = await Match.find({
+            $or: [{ teamA: userId }, { teamB: userId }]
+        }).sort({ matchDate: -1 });
+        res.status(200).json(history);
+    } catch (error) {
+        res.status(500).json({ message: '내역 조회 실패' });
+    }
+});
 
 // 서버 실행
 const PORT = 5000;

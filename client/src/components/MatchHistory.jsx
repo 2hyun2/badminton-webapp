@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { useMatches } from '../../hooks/useMatches';
-import { useUsers } from '../../hooks/useUsers';
-import { UserCard } from '../card/UserCard';
-import { Button } from '../common/Button';
+import { useMatches } from '../hooks/useMatches';
+import { useUsers } from '../hooks/useUsers';
+import { Button } from './common/Button';
+import { UserCard } from './card/UserCard';
 
 export const MatchHistory = ({ viewMine = false }) => {
     const { me, userList } = useUsers();
