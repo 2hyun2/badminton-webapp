@@ -83,7 +83,7 @@ export const ProtectedLayout = () => {
                 <div className="relative max-w-md w-full bg-white shadow-lg flex flex-col min-h-screen">
                     <Header />
 
-                    <main className='default-layout relative'>
+                    <main className='default-layout relative [scrollbar-width:thin]'>
                         {/* 뒤로가기 버튼 */}
                         {location.pathname !== '/' && (
                             <button

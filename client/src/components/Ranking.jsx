@@ -35,7 +35,7 @@ export const Ranking = () => {
             const isTeamAWin = match.winner === 'A';
             const winnerTeamIds = isTeamAWin ? match.teamA : match.teamB;
             const loserTeamIds = isTeamAWin ? match.teamB : match.teamA;
-            const eloChangeMagnitude = match.eloDelta || 0; // match.eloDelta는 항상 양수
+            const eloChangeMagnitude = match.eloDelta || 0;
 
             const allParticipants = [...match.teamA, ...match.teamB];
 
@@ -93,14 +93,14 @@ export const Ranking = () => {
                 <button
                     key={value}
                     onClick={() => setFilterParam({ type: 'period', value })}
-                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all 
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all  cursor-pointer
                                 ${filterParam.type === 'period' && filterParam.value === value ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
                 >
                     {value === 'total' ? '전체' : value === 'weekly' ? '주간' : '월간'}
                 </button>
             ))}
             {/* N개월 필터 */}
-            {[1, 2, 3].map((value) => (
+            {/* {[1, 2, 3].map((value) => (
                 <button
                     key={`${value}month`}
                     onClick={() => setFilterParam({ type: 'months', value: value.toString() })}
@@ -109,7 +109,7 @@ export const Ranking = () => {
                 >
                     {value}개월
                 </button>
-            ))}
+            ))} */}
         </div>
 
         {/* ELO 랭킹 */}
