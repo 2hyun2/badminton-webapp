@@ -59,7 +59,7 @@ const useAuthStore = create(persist((set, get) => ({
         } catch (error) {
             const errorMsg = error.response?.data?.message || '서버와 통신 중 에러가 발생했습니다.';
             set({ isLoading: false, error: errorMsg });
-            return { isAvailable: false, message: errorMsg }
+            return { isUnique: false, message: errorMsg }
         }
     },
 

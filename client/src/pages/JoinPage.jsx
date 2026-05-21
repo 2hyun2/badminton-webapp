@@ -38,8 +38,8 @@ export const JoinPage = () => {
         }
 
         const result = await checkId(username);
-        // result.isAvailable = boolean
-        if (result.isAvailable) {
+        // result.isUnique = boolean
+        if (result.isUnique) {
             alert(result.message);
             setIsIdChecked(true);
             setCheckedUsername(username);
