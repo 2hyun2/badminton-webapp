@@ -8,12 +8,15 @@ import { MatchCard } from "../components/card/MatchCard";
 import { ModalMatchResult } from '../components/modal/ModalMatchResult';
 
 import { useUsers } from "../hooks/useUsers";
+import { useMatches } from "../hooks/useMatches";
 
 export const MainPage = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
-    const { userList, presentList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, endMatchMutation, updateUsers, endingMatchId, setEndingMatchId } = useUsers();
+    const { userList, presentList, isLoading, isError, restingList, waitingList, waitingCategory, playingList, updateUsers } = useUsers();
+    const { endMatchMutation, endingMatchId, setEndingMatchId } = useMatches();
+
 
     // 로그인 보호 로직
     useEffect(() => {

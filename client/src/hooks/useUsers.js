@@ -6,47 +6,42 @@ import { useSocket } from "./useSocket";
 import useMatchStore from "../store/useMatchStore";
 
 export const useUsers = () => {
-    // useAuthStore 불러오기
-    const { user: authUser, updatePresent } = useAuthStore();
-    const setUserList = useMatchStore((state) => state.setUserList);
 
-    // React Query 관리
-    const queryClient = useQueryClient();
-    const [endingMatchId, setEndingMatchId] = useState(null);
-    const { on, off } = useSocket(); // off 함수가 있다고 가정합니다.
-
-    // 소켓 이벤트 분류 및 자동 리프레시 로직
+    //* zustand
+    const { user: authUser, updatePresent } = useAuthStore(); // 구조분해할당을 통해 authUser로 이름을 변경(치환)하여 사용합니다.
+    const setUserList = useMatchStore((state) => state.setUserList); // const { setUserList } = useMatchStore(); 전체 불러오기 금지 (state) => state.setUserList 로 내부 setUserList 함수만 소환
+    //* socket
+    const { socketOn, socketOff } = useSocket(); // hook - useSocket
+    //* react-query
+    const queryClient = useQueryClient(); // React Query 마스터키.    
+    //* useEffect
     useEffect(() => {
-        const handleUserUpdate = (data) => {
-            // console.log(`[Socket] 유저 상태 변경 감지 (${data.type})`);
-            queryClient.invalidateQueries({ queryKey: ['users'] });
+        const handleUserUpdate = (data) => { // socket 'users:update' 전송시 
+            queryClient.invalidateQueries({ queryKey: ['users'] }); // Query 'users' 초기화
+        };
+        const handleMatchUpdate = (data) => { // socket 'match:update' 전송시
+            queryClient.invalidateQueries({ queryKey: ['users'] }); // Query 'users' 초기화
         };
 
-        const handleMatchUpdate = (data) => {
-            // console.log(`[Socket] 매치 상태 변경 감지 (${data.type})`);
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-        };
+        // socket on 연결
+        socketOn('users:update', handleUserUpdate);
+        socketOn('match:update', handleMatchUpdate);
 
-        // 유저 업데이트 알림을 받으면 목록 새로고침
-        on('users:update', handleUserUpdate);
-        // 매치 업데이트 알림을 받으면 목록 새로고침
-        on('match:update', handleMatchUpdate);
-
-        return () => {
-            if (off) {
-                off('users:update', handleUserUpdate);
-                off('match:update', handleMatchUpdate);
+        return () => { // useEffect 청소
+            if (socketOff) {
+                socketOff('users:update', handleUserUpdate);
+                socketOff('match:update', handleMatchUpdate);
             }
         };
-    }, [on, off, queryClient]);
+    }, [socketOn, socketOff, queryClient]);
 
-    // useQuery 데이터 불러오기
+    // useQuery 데이터 불러오기 위에는 선언부 실제 코드는 여기부터
     const { data: userList = [], isLoading, isError, refetch } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
             const response = await api.get('/users');
             const data = response.data;
-            setUserList(data); // 매칭 스토어와 동기화
+            setUserList(data); // zustand - useMatchStore 에 다이렉트로 데이터 꽂기
             return data;
         },
     });
@@ -60,18 +55,6 @@ export const useUsers = () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
         },
     })
-
-    // 매칭 시작 Mutation (Layout에서 이동)
-    const startMatchMutation = useMutation({
-        mutationFn: async (selectedIds) => {
-            const response = await api.post('/match/start', { selectedIds });
-            return response.data;
-        },
-        onSuccess: () => {
-            alert("매칭 정보가 등록되었습니다.");
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-        },
-    });
 
     // useMutation 입장 처리
     const entryMutation = useMutation({
@@ -98,26 +81,16 @@ export const useUsers = () => {
             if (data.message || data.message !== undefined) alert(data.message);
         },
     });
-    // useMutation 경기 결과 입력
-    const endMatchMutation = useMutation({
-        mutationFn: async (matchData) => {
-            const response = await api.post('/match/end', matchData);
-            return response.data;
-        },
-        onSuccess: (data) => {
-            if (data.message) alert(data.message);
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            setEndingMatchId(null);
-        },
-        onError: (error) => {
-            const errorMsg = error.response?.data?.message || "오류가 발생했습니다.";
-            alert(errorMsg);
-        }
-    });
 
-    const { presentList, restingList, waitingList, playingList, waitingCategory, me } = useMemo(() => {
+const { presentList, restingList, waitingList, playingList, waitingCategory, me } = useMemo(() => {
+        // 1. 현재 체육관에 출석한 전체 유저
         const presentList = userList.filter((user) => user.isPresent);
-        // 경기 중인 유저들을 matchId별로 그룹화
+
+        // 2. 출석 유저 중 '휴식중' / '대기중' 상태 분류
+        const resting = presentList.filter((user) => user.status === 'RESTING');
+        const waiting = presentList.filter((user) => user.status === 'WAITING');
+
+        // 3. [복구 완료] 경기 중인 유저들을 matchId(코트)별로 그룹화 및 팀(A/B) 배정
         const playingMatchesMap = userList.reduce((acc, u) => {
             if (u.status === 'PLAYING' && u.matchId) {
                 if (!acc[u.matchId]) acc[u.matchId] = { matchId: u.matchId, teamA: [], teamB: [] };
@@ -127,25 +100,27 @@ export const useUsers = () => {
             }
             return acc;
         }, {});
-
+        
+        // 맵으로 묶인 경기들을 최신 매치(matchId 역순)가 위로 오도록 배열로 정렬
         const playing = Object.values(playingMatchesMap).sort((a, b) => b.matchId - a.matchId);
-        const resting = presentList.filter((user) => user.status === 'RESTING');
-        const waiting = presentList.filter((user) => user.status === 'WAITING');
 
-        const myInfo = authUser 
-            ? userList.find(u => u.id === authUser.id) 
+        // 4. 실시간 서버 데이터가 반영된 '나'의 최신 정보
+        const myInfo = authUser
+            ? userList.find(u => u.id === authUser.id)
             : null;
 
+        // 5. 대기자들을 선호 종목별로 카테고리화
         const groups = { "자유": [], "혼복": [], "남복": [], "여복": [] };
-        waiting.forEach(u => 
+        waiting.forEach(u =>
             groups[u.preferredMatch || "자유"]?.push(u));
 
+        // 6. 가공 완료된 부품들 리턴
         return {
             presentList: presentList,
             restingList: resting,
             waitingList: waiting,
+            playingList: playing, 
             waitingCategory: groups,
-            playingList: playing,
             me: myInfo
         };
     }, [userList, authUser]); // 원본 userList나 로그인 정보가 변경될 때마다 업데이트
@@ -153,20 +128,16 @@ export const useUsers = () => {
     return {
         userList, // 원본 유저 데이터
         presentList, // 출석 유저 데이터
-        playingList, // 경기중 명단
         me, // 실시간 업데이트되는 '나'의 정보
         restingList, // 휴식중 명단
         waitingList, // 대기중 명단
         waitingCategory,  // 대기중 명단 [자유, 남복, 여복, 혼복]
+        playingList,
         isLoading, // 로딩 상태
         isError, // 에러 상태
         refetch, // 수동으로 새로고침이 필요할 때 쓸 함수
-        endMatchMutation, // 경기 결과 POST
-        startMatchMutation, // 매칭 시작 POST
         entryMutation,   // 입장 처리
         exitMutation,    // 퇴장 처리
         updateUsers: updateUserMutation, // 유저 업데이트에 필요한 함수
-        endingMatchId, // 현재 종료 처리 중인 경기 ID
-        setEndingMatchId // 경기 종료 상태 변경 함수
     };
 }

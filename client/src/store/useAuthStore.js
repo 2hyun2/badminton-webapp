@@ -4,16 +4,18 @@ import api from '../hooks/api';
 
 const useAuthStore = create(persist((set, get) => ({
     user: null,
+    token: null,
     isLoading: false,
     error: null,
     lastAction: null, // 마지막 활동 시간 기록
 
     loginUser: async (username, password) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null }); // 로그인 시도: 로딩중
         try {
+            // server에 username(ID), password 를 보내고 user, token 를 응답으로 받아온다.
             const response = await api.post('/users/login', { username, password });
 
-            set({ user: response.data.user, isLoading: false, lastAction: Date.now() });
+            set({ user: response.data.user, token: response.data.token, isLoading: false, lastAction: Date.now() });
             return response.data;
         } catch (error) {
             const errorMsg = error.response?.data?.message || '로그인에 실패했습니다.';
@@ -23,13 +25,11 @@ const useAuthStore = create(persist((set, get) => ({
     },
 
     logoutUser: async () => {
-        const currentUser = get().user;
+        const currentUser = get().user; // zustand 내 user 정보 갖고오기
         if (!currentUser) return;
 
-        // 상태를 즉시 null로 설정하여 다른 인터셉터나 컴포넌트에서 중복 로그아웃을 방지
-        set({ user: null, error: null, lastAction: null });
+        set({ user: null, token: null, error: null, lastAction: null });
 
-        // 사용자가 '입장' 상태였다면 비동기로 퇴장 처리 (결과를 기다리지 않음)
         if (currentUser.isPresent && currentUser.id) {
             try {
                 await api.post('/users/exit', { userId: currentUser.id });
@@ -39,22 +39,23 @@ const useAuthStore = create(persist((set, get) => ({
         }
     },
 
-    // 입장/퇴장 업데이트 함수
+    // 업데이트 함수 
+    // updatePresent 에 data를 실어 보내면 useAuthStore 전체 데이터에서 user 값에 patch
     updatePresent: (data) => set((state) => ({
         user: state.user ? { ...state.user, ...data } : null
     })),
 
-    // 활동 시간 업데이트 함수
+    // 활동 시간 업데이트 함수 *1시간 부재시 자동 로그아웃
     updateActivity: () => {
         set({ lastAction: Date.now() });
     },
-
+    // 아이디 중복 체크
     checkId: async (username) => {
         set({ isLoading: true, error: null });
         try {
             const response = await api.post('/users/check-id', { username });
             set({ isLoading: false });
-            return response.data;
+            return response.data; // isUnique: true, message: '사용 가능한 아이디입니다.'
 
         } catch (error) {
             const errorMsg = error.response?.data?.message || '서버와 통신 중 에러가 발생했습니다.';
@@ -62,7 +63,7 @@ const useAuthStore = create(persist((set, get) => ({
             return { isUnique: false, message: errorMsg }
         }
     },
-
+    // 회원가입 return 값 단순
     registerUser: async (userData) => {
         set({ isLoading: true, error: null });
         try {

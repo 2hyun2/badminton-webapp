@@ -52,7 +52,7 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
                     >
                         <option value="">파트너 없음 (개인 신청)</option>
                         {userList
-                            .filter(u => u.status === "휴식중" && u.id !== waitTargetId)
+                            .filter(u => u.status === "RESTING" && u.id !== waitTargetId)
                             .map(partner => (
                                 <option key={partner.id} value={partner.id}>
                                     {partner.name} ({partner.rating})

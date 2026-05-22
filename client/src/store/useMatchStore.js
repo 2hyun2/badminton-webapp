@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import api from '../hooks/api';
 
 const useMatchStore = create((set, get) => ({
-  // state
+  // useMatchStore - state
   userList: [],
   selectedPlayerIds: [],
 

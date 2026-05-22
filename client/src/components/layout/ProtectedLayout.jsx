@@ -9,15 +9,16 @@ import { Header } from './Header';
 import { ProtectedFooter } from './ProtectedFooter';
 import useAuthStore from '../../store/useAuthStore';
 import { ModalWaitOption } from '../modal/ModalWaitOption';
+import { useMatches } from '../../hooks/useMatches';
 
 
 export const ProtectedLayout = () => {
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false); // 매칭 팝업 boolean
     const [waitTargetId, setWaitTargetId] = useState(null); // 모달 제어용 ID (기본값 null)
-
     const { user } = useAuthStore(); // 로그인 세션 정보는 AuthStore에서 직접 가져옵니다.
-    const { me, userList, updateUsers, startMatchMutation, waitingCategory } = useUsers();
-
+    const { me, userList, updateUsers, waitingCategory } = useUsers();
+    const { startMatchMutation } = useMatches();
+    
     const navigate = useNavigate();
     const location = useLocation();
 

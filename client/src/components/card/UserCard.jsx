@@ -48,11 +48,11 @@ export const UserCard = ({ user, onToggle }) => {
                             {user.groupId.slice(0, 4)}
                         </span>
                     )}
-                    {user.todayPlayCount !== 0 && (
+                    {/* {user.todayPlayCount !== 0 && (
                         <span className="text-[10px] font-bold text-slate-500 bg-slate-200/50 px-1 rounded">
                             {user.todayPlayCount}회
                         </span>
-                    )}
+                    )} */}
                 </div>
             </div>
         </div>
