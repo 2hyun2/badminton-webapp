@@ -72,7 +72,7 @@ const userSchema = new mongoose.Schema({
 
 // 경기 신청서 양식
 const matchSchema = new mongoose.Schema({
-    matchId: { type: Number, required: true },
+    matchId: { type: Date, required: true }, // Changed from Number to Date
     matchDate: { type: Date, default: getKSTNow },
     teamA: [Number], // []: 배열 Number: 숫자 = 배열 안에 숫자들이 들어감
     teamB: [Number],
@@ -320,7 +320,7 @@ app.post('/api/users/update', async (req, res) => {
 // 경기 시작 // io.emit('match:update', { type: 'START', matchId: newMatchId });
 app.post("/api/match/start", async (req, res) => {
     const { selectedIds } = req.body; // 경기 매칭 ids  length = 4
-    const newMatchId = getKSTNow();
+    const newMatchId = getKSTNow(); // This will now correctly assign a Date object to a Date field
     if (!selectedIds || selectedIds.length !== 4) return res.status(400).json({ message: "4명을 선택해야 합니다." });
 
     try {
@@ -368,7 +368,7 @@ app.post("/api/match/end", async (req, res) => {
             ratingChange = Math.round(K * ((winnerTeam === 'A' ? 1 : 0) - expectedA));
         }
 
-        const bulkOps = participants.map(user => {
+        const bulkOps = matchedUser.map(user => {
             const isTeamA = user.matchSlot === 0 || user.matchSlot === 1;
             const isTeamB = user.matchSlot === 2 || user.matchSlot === 3;
             const isWin = (winnerTeam === 'A' && isTeamA) || (winnerTeam === 'B' && isTeamB);
@@ -493,7 +493,6 @@ app.get('/api/admin/users', adminOnly, async (req, res) => {
         res.status(500).json({ message: '서버 에러' });
     }
 });
-
 // 관리자 전용 비밀번호 초기화 API (URL에 타겟 유저 번호를 달고 요청합니다)
 app.post('/api/admin/users/:userId/reset-password', adminOnly, async (req, res) => {
     try {
@@ -510,7 +509,6 @@ app.post('/api/admin/users/:userId/reset-password', adminOnly, async (req, res) 
         res.status(500).json({ message: '초기화 실패' });
     }
 });
-
 // 유저 상태 강제 초기화 (경기 중 -> 휴식 중으로 복구)
 // io.emit('users:update', { type: 'UPDATE', userId: updatedUser.id, status: updatedUser.status }); 
 app.post('/api/admin/users/:userId/reset-status', adminOnly, async (req, res) => {
