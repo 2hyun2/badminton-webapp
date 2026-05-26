@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 import api from '../../hooks/api';
@@ -27,9 +27,14 @@ export const ProtectedLayout = () => {
             navigate('/login', { replace: true })
         }
     }, [user, navigate])
+    // scroll 제어 useRef, useEffect
+    const scrollRef = useRef(null);
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = 0;
+        }
+    }, [location])
 
-    // 만약 로그인은 되어있는데(user 존재), 아직 서버에서 상세 정보(me)를 가져오는 중이라면 
-    // 하위 컴포넌트나 UI가 깨지지 않도록 로딩 처리를 해줍니다.
     if (user && !me) return <div className="p-10 text-center">사용자 정보를 확인 중...</div>;
 
     const handleStartMatch = (selectedIds) => {
@@ -84,7 +89,7 @@ export const ProtectedLayout = () => {
                 <div className="relative max-w-md w-full bg-white shadow-lg flex flex-col min-h-screen">
                     <Header />
 
-                    <main className='default-layout relative [scrollbar-width:thin]'>
+                    <main ref={scrollRef} className='default-layout relative [scrollbar-width:thin]'>
                         {/* 뒤로가기 버튼 */}
                         {location.pathname !== '/' && (
                             <button
