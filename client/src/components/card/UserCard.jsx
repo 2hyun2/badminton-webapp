@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom';
 import { Mars, Venus } from 'lucide-react';
 const statusColor = {
     "WAITING": {
@@ -13,6 +14,9 @@ const statusColor = {
 };
 
 export const UserCard = ({ user, onToggle }) => {
+    const navigate = useNavigate();
+    const handleUserClick = (id) => navigate(`/record/${id}`);
+
     const GenderIcon = user.gender === 'MALE' || user.gender === '남성' ? Mars : Venus;
 
     // 색상을 결정하는 로직 분리
@@ -30,7 +34,7 @@ export const UserCard = ({ user, onToggle }) => {
 
     return (
         <div
-            onClick={onToggle ? () => onToggle(user.id) : undefined}
+            onClick={onToggle ? () => handleUserClick(user.id) : undefined}
             className={`
                 ${getStatusColor()} 
                 inline-flex items-center rounded-lg border p-1 transition-all

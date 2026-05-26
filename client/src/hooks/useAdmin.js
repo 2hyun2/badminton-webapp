@@ -3,15 +3,18 @@ import api from "./api";
 
 export const useAdmin = () => {
 
-    const queryClient = useQueryClient(); // React Query 마스터키.    
+    const queryClient = useQueryClient(); // React Query 마스터키.
 
-    const { data: adminUserList = [],  isLoading: isAdminUsersLoading, refetch: refetchAdminUsers } = useQuery({
-        queryKey: ['adminUsers'], 
-        queryFn: async () => {
-            const response = await api.get('/admin/users');
-            return response.data;
-        },
-    });
+    const {
+        data: adminUserList = [],
+        isLoading: isAdminUsersLoading,
+        refetch: refetchAdminUsers } = useQuery({
+            queryKey: ['adminUsers'],
+            queryFn: async () => {
+                const response = await api.get('/admin/users');
+                return response.data;
+            },
+        });
 
     const resetPasswordMutation = useMutation({
         mutationFn: async (userId) => {
@@ -49,7 +52,7 @@ export const useAdmin = () => {
         },
         onSuccess: (data) => {
             alert(data.message);
-            
+
             queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
             queryClient.invalidateQueries({ queryKey: ['users'] });
         },
@@ -65,7 +68,7 @@ export const useAdmin = () => {
         },
         onSuccess: (data) => {
             alert(data.message || "해당 경기 기록이 삭제되었습니다.");
-            
+
             // 경기 리스트 (['matchHistory'])  
             queryClient.invalidateQueries({ queryKey: ['matchHistory'] });
         },

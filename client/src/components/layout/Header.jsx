@@ -74,7 +74,12 @@ export const Header = () => {
                     <Link to="/history" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">History</Link>
                     <Link to="/mypage" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">My Page</Link>
                     {user ? (
-                        <button onClick={handleLogout} className="w-full text-right border-b border-slate-100 p-2 cursor-pointer [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)] hover:bg-blue-700">Logout</button>
+                        <>
+                            <button onClick={handleLogout} className="w-full text-right border-b border-slate-100 p-2 cursor-pointer [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)] hover:bg-blue-700">Logout</button>
+                            {user.role === 'ADMIN' && (
+                                <Link to="/admin" onClick={closeMenu} className="bg-red-500 text-white border-b border-slate-100 p-2">관리자 페이지</Link>
+                            )}
+                        </>
                     ) : (
                         <Link to="/login" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Login</Link>
                     )}

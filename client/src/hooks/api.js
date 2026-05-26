@@ -46,9 +46,9 @@ let isLoggingOut = false; // 중복 방지 토글
 // axios request - 중간 개입  
 api.interceptors.request.use((config) => {
     // zustand에서 값 갖고옴 api.js 는 react component 가 아니라 () 이 아닌 getState() 로 불러옴
-    const { user, lastAction, logoutUser, updateActivity } = useAuthStore.getState();
+    const { user, token, lastAction, logoutUser, updateActivity } = useAuthStore.getState();
 
-    if (user && lastAction) {
+    if (user && lastAction && token) {
         const now = Date.now();
         const sessionTimeout = 1 * 60 * 60 * 1000; // 1시간
 
@@ -63,6 +63,7 @@ api.interceptors.request.use((config) => {
             // axios 종료 
             return Promise.reject(new Error("Session expired"));
         }
+        if (token) config.headers.Authorization = `Bearer ${token}`;
         // 활동 시간 갱신
         updateActivity(); // set({ lastAction: Date.now() });
     }

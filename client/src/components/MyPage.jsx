@@ -73,7 +73,7 @@ export const MyPage = () => {
                         {roleLabels[me.role] || me.role}
                     </span>
                 </div>
-                
+
                 <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 aspect-square bg-blue-600 rounded-2xl flex items-center justify-center text-4xl shadow-lg border-2 border-white">
                         {me.gender === 'MALE' ? '👨' : '👩'}
@@ -118,10 +118,10 @@ export const MyPage = () => {
                 <div className="bg-white rounded-xl border border-slate-200 p-2 space-y-4">
                     <div className="flex flex-col gap-1">
                         <label className="label-default">이름</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="input-default"
                             placeholder="이름 입력"
                         />
@@ -131,34 +131,44 @@ export const MyPage = () => {
                         <div className="flex justify-between items-end">
                             <label className="label-default">생년월일</label>
                             <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1 cursor-pointer">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     checked={formData.isBirthdayPublic}
-                                    onChange={(e) => setFormData({...formData, isBirthdayPublic: e.target.checked})}
+                                    onChange={(e) => setFormData({ ...formData, isBirthdayPublic: e.target.checked })}
                                 />
                                 공개
                             </label>
                         </div>
-                        <input 
-                            type="text" 
-                            value={formData.birthday}
-                            onChange={(e) => setFormData({...formData, birthday: e.target.value})}
+                        <input
+                            type="text"
+                            value={formData.birthday} maxLength={6}
+                            onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
                             className="input-default"
                             placeholder="YYYY.MM.DD"
                         />
                     </div>
 
                     <div className="flex flex-col gap-1">
+                        <label className="label-default">자기소개</label>
+                        <textarea
+                            value={formData.bio}
+                            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                            maxLength={300} // 최대 300자 제한
+                            className="input-default resize-none min-h-[100px]" // 크기 조절 막기 + 기본 최소 높이 지정
+                        />
+                    </div>
+
+                    {/* <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-end">
                             <label className="label-default">성별</label>
-                            {/* <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1 cursor-pointer">
+                            <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1 cursor-pointer">
                                 <input 
                                     type="checkbox" 
                                     checked={formData.isGenderPublic}
                                     onChange={(e) => setFormData({...formData, isGenderPublic: e.target.checked})}
                                 />
                                 공개
-                            </label> */}
+                            </label>
                         </div>
                         <select 
                             value={formData.gender}
@@ -168,14 +178,14 @@ export const MyPage = () => {
                             <option value="MALE">남성</option>
                             <option value="FEMALE">여성</option>
                         </select>
-                    </div>
+                    </div> */}
 
                     <div className="flex flex-col gap-1">
                         <label className="label-default">비밀번호 (본인 확인 및 변경)</label>
-                        <input 
-                            type="password" 
+                        <input
+                            type="password"
                             value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             className="input-default"
                             placeholder="새 비밀번호 또는 현재 비밀번호"
                         />
@@ -183,10 +193,10 @@ export const MyPage = () => {
 
                     <div className="flex flex-col gap-1">
                         <label className="label-default">비밀번호 확인</label>
-                        <input 
-                            type="password" 
+                        <input
+                            type="password"
                             value={formData.confirmPassword}
-                            onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                             className="input-default"
                             placeholder="비밀번호를 한번 더 입력하세요"
                         />
@@ -194,7 +204,7 @@ export const MyPage = () => {
                 </div>
             </section>
 
-            <Button 
+            <Button
                 className='w-full'
                 size={'flex'}
                 variant={'blue'}

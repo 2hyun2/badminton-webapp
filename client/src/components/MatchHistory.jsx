@@ -11,8 +11,6 @@ export const MatchHistory = ({ viewMine = false }) => {
     const { matchHistory, isLoading: isMatchesLoading, isError } = useMatches();
     const [isMeOnly, setIsMeOnly] = useState(viewMine);
 
-    const handleUserClick = (id) => navigate(`/record/${id}`);
-
     if (isMatchesLoading || !userList) return <div className="py-20 text-center text-slate-400">데이터를 불러오는 중...</div>
     if (isError) return <div className="py-20 text-center text-red-400">에러가 발생했습니다.</div>
 
@@ -65,7 +63,7 @@ export const MatchHistory = ({ viewMine = false }) => {
                                         </div>
                                         <div className="space-y-1">
                                             {teamAUsers.length > 0 
-                                                ? teamAUsers.map(user => <UserCard key={user.id} user={user} onToggle={handleUserClick}/>)
+                                                ? teamAUsers.map(user => <UserCard key={user.id} user={user} onToggle={user.id}/>)
                                                 : match.teamA.map(id => <div key={id} className="text-xs text-slate-500">Player {id}</div>)
                                             }
                                         </div>
@@ -89,7 +87,7 @@ export const MatchHistory = ({ viewMine = false }) => {
                                         </div>
                                         <div className="space-y-1">
                                             {teamBUsers.length > 0 
-                                                ? teamBUsers.map(user => <UserCard key={user.id} user={user} onToggle={handleUserClick}/>)
+                                                ? teamBUsers.map(user => <UserCard key={user.id} user={user} onToggle={user.id}/>)
                                                 : match.teamB.map(id => <div key={id} className="text-xs text-slate-500">Player {id}</div>)
                                             }
                                         </div>

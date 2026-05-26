@@ -1,4 +1,4 @@
-import React from 'react'
+import { React, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
 import { DefaultLayout } from './components/layout/DefaultLayout'
@@ -12,7 +12,9 @@ import { Record } from './components/Record'
 import { Ranking } from './components/Ranking'
 import { MyPage } from './components/MyPage'
 
-
+import { AdminLayout } from './components/layout/AdminLayout'
+import { AdminIndex } from './components/admin/AdminIndex'
+import { AdminUsers } from './components/admin/AdminUsers'
 
 const App = () => {
     return (
@@ -28,6 +30,12 @@ const App = () => {
                 <Route path='/record/:id' element={<Record />} />
                 <Route path='/history' element={<MatchHistory />} />
                 <Route path='/mypage' element={<MyPage />} />
+                <Route element={<AdminLayout />}>
+                    {/* 어드민 내용들 */}
+                    <Route path='/admin/' element={<AdminIndex />} />
+                    <Route path='/admin/users' element={<AdminUsers />} />
+                </Route>
+
             </Route>
         </Routes>
     )

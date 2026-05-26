@@ -109,34 +109,31 @@ export const Record = () => {
     if (isLoading || !targetUser) { return <div className="p-10 text-center text-slate-400">데이터를 불러오는 중...</div> }
     if (allTargetMatches.length === 0) { return <div className="p-10 text-center text-slate-400">기록된 경기가 없습니다.</div> }
 
-    // 유저 카드 클릭 시 해당 유저 전적으로 이동하는 핸들러
-    const handleUserClick = (id) => navigate(`/record/${id}`);
-
     return (
         <div className='space-y-4'>
             <div className="text-center space-y-2">
-                <h2 className='pages-title uppercase mb-0'>{targetUser.name}'s Profile</h2>
+                <h2 className='pages-title uppercase'>{targetUser.name}'s Profile</h2>
                 
                 {/* 자기소개 메시지 */}
                 {targetUser.bio && (
-                    <div className="py-1 px-4 italic text-sm text-slate-600 break-keep">
+                    <div className="text-sm text-slate-600 break-keep">
                         "{targetUser.bio}"
                     </div>
                 )}
                 
                 {/* 공개 정보 섹션 */}
-                <div className="flex justify-center gap-3 text-xs text-slate-500 font-medium">
+                <div className="flex justify-center gap-2 text-xs text-slate-500 font-medium">
                     {(targetUser.id === me?.id || targetUser.isGenderPublic) && (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded-full">
+                        <span className="text-blue-600 bg-white border border-blue-200 rounded-full py-1 px-2">
                             {targetUser.gender === 'MALE' ? '남성' : '여성'}
                         </span>
                     )}
                     {(targetUser.id === me?.id || targetUser.isBirthdayPublic) && (
-                        <span className="bg-slate-100 px-2 py-0.5 rounded-full">
-                            🎂 {targetUser.birthday}
+                        <span className="text-blue-600 bg-white border border-blue-200 rounded-full py-1 px-2">
+                            생년월일: {targetUser.birthday}
                         </span>
                     )}
-                    <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">
+                    <span className="text-blue-600 bg-white border border-blue-200 rounded-full py-1 px-2">
                         Rating: {targetUser.rating}
                     </span>
                 </div>
@@ -156,12 +153,12 @@ export const Record = () => {
                     </div>
                     <div className="space-y-1 border border-slate-300 rounded-xl p-2">
                         <p className="text-slate-500">최고의 파트너</p>
-                        {stats.bestPartner?.user ? <UserCard key={stats.bestPartner.user.id} user={stats.bestPartner.user} onToggle={handleUserClick} /> : <p className="text-sm font-bold truncate">없음</p>}
+                        {stats.bestPartner?.user ? <UserCard key={stats.bestPartner.user.id} user={stats.bestPartner.user} onToggle={stats.bestPartner.user.id} /> : <p className="text-sm font-bold truncate">없음</p>}
                         {stats.bestPartner && <p className="text-xs text-blue-500">{stats.bestPartner.rate.toFixed(0)}% 승률</p>}
                     </div>
                     <div className="space-y-1 border border-slate-300 rounded-xl p-2">
                         <p className="text-slate-500">나의 천적</p>
-                        {stats.nemesis?.user ? <UserCard key={stats.nemesis.user.id} user={stats.nemesis.user} onToggle={handleUserClick} /> : <p className="font-bold truncate">없음</p>}
+                        {stats.nemesis?.user ? <UserCard key={stats.nemesis.user.id} user={stats.nemesis.user} onToggle={stats.nemesis.user.id} /> : <p className="font-bold truncate">없음</p>}
                         {stats.nemesis && <p className="text-xs text-red-500">{stats.nemesis.rate.toFixed(0)}% 패배율</p>}
                     </div>
                 </section>
@@ -203,7 +200,7 @@ export const Record = () => {
                 <div className="flex flex-wrap gap-2">
                     {stats?.topFrequent.map((player, i) => (
                         <div key={player.user.id || i} className="text-xs border border-slate-300/40 rounded-lg p-1 shadow-lg">
-                            {player.user ? <UserCard key={player.user.id} user={player.user} onToggle={handleUserClick} /> : <span className="font-semibold">알 수 없음</span>}
+                            {player.user ? <UserCard key={player.user.id} user={player.user} onToggle={player.user.id} /> : <span className="font-semibold">알 수 없음</span>}
                             <span className="ml-1 text-slate-400">{player.count}회</span>
                         </div>
                     ))}
