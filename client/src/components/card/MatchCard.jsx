@@ -28,9 +28,6 @@ export const MatchCard = ({ matchId, players, onOpenModal }) => {
     const avgA = calculateAvg(teamAPlayers);
     const avgB = calculateAvg(teamBPlayers);
 
-    console.log(teamAPlayers);
-    console.log(teamBPlayers);
-
     return (
         <div className="w-full bg-slate-700 text-white rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-slate-800 p-2 flex items-center justify-between border-b border-white/50">

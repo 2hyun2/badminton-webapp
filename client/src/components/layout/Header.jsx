@@ -10,8 +10,6 @@ export const Header = () => {
     const { user, logoutUser } = useAuthStore();
     const { me } = useUsers();
 
-    console.log(me);
-
     const myStand = () => {
         // 1. 로그인 전
         if (!me) return { color: 'bg-blue-600', text: '로그인 필요' };
@@ -42,6 +40,8 @@ export const Header = () => {
         closeMenu();
         navigate('/login', { replace: true });
     };
+
+    console.log(me);
 
     return (
         <header className={`relative flex justify-between items-center w-full ${statusInfo.color} p-2 shadow-md transition-all duration-300`}>

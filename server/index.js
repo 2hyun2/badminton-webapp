@@ -456,6 +456,43 @@ app.get('/api/match/history/:userId', async (req, res) => {
     }
 });
 
+// node-cron 활용 특정 시간마다 비활성화 유저 로그아웃화
+cron.schedule('*/5 * * * *', async () => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000); // 1시간 전
+
+    try {
+        const inactiveUsers = await User.find({
+            isPresent: true,
+            updatedAt: { $lt: oneHourAgo },
+        });
+        if (inactiveUsers.length === 0) return;
+
+        await User.updateMany(
+            {
+                isPresent: true,
+                updatedAt: { $lt: oneHourAgo },
+            },
+            {
+                isPresent: false,
+                status: "OFFLINE",
+                exitTime: getKSTNow(),
+                updatedAt: getKSTNow()
+            }
+        );
+
+        for (const user of inactiveUsers) {
+            io.emit('users:update', {
+                type: 'EXIT',
+                userId: user.id,
+                message: `${user.username}님이 1시간 이상 활동이 없어 자동 퇴장되었습니다.`
+            });
+        }
+
+    } catch (error) {
+        console.error('스케줄러 에러:', error);
+    }
+});
+
 // --- 관리자 전용 API ---
 
 // 미들웨어(Middleware) 함수: API 본 요청이 실행되기 '중간(Middle)'에 가로채서 검사하는 역할입니다.
@@ -555,7 +592,7 @@ app.delete('/api/admin/matches/:matchId', adminOnly, async (req, res) => {
         if (!deletedMatch) {
             return res.status(404).json({ message: '경기 기록을 찾을 수 없습니다.' });
         }
-        
+
         io.emit('match:update', { type: 'DELETE', matchId: deletedMatch.matchId });
 
         res.status(200).json({ success: true, message: '경기 기록이 삭제되었습니다.' });
