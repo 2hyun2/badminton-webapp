@@ -15,6 +15,7 @@ import { MyPage } from './components/MyPage'
 import { AdminLayout } from './components/layout/AdminLayout'
 import { AdminIndex } from './components/admin/AdminIndex'
 import { AdminUsers } from './components/admin/AdminUsers'
+import AdminMatches from './components/admin/AdminMatches'
 
 const App = () => {
     return (
@@ -34,6 +35,7 @@ const App = () => {
                     {/* 어드민 내용들 */}
                     <Route path='/admin/' element={<AdminIndex />} />
                     <Route path='/admin/users' element={<AdminUsers />} />
+                    <Route path='/admin/matches' element={<AdminMatches />} />
                 </Route>
 
             </Route>

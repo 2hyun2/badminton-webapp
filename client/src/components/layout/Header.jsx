@@ -1,14 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import { useUsers } from '../../hooks/useUsers';
-
+import { useSocket } from '../../hooks/useSocket';
 
 export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
     const { user, logoutUser } = useAuthStore();
     const { me } = useUsers();
+    const { socketOn, socketOff } = useSocket();
+    const [userSocket, setUserSocket] = useState(null);
+    const [matchSocket, setMatchSocket] = useState(null);
+
+    useEffect(() => {
+        const handleUserOnOff = (data) => {
+            setUserSocket(data);
+
+            switch (data.type) {
+                case 'ENTRY': break;
+                case 'EXIT': break;
+                case 'UPDATE': break;
+            }
+        };
+        socketOn('users:update', handleUserOnOff);
+        return () => socketOff('users:update', handleUserOnOff) // unMount시 이벤트 제거
+    }, [socketOn, socketOff])
+
+    useEffect(() => {
+        const handleUserMatch = (data) => {
+            setMatchSocket(data);
+
+            switch (data.type) {
+                case 'START': break;
+                case 'END': break;
+            }
+        };
+        socketOn('match:update', handleUserMatch);
+        return () => socketOff('match:update', handleUserMatch) // unMount시 이벤트 제거
+    }, [socketOn, socketOff])
 
     const myStand = () => {
         // 1. 로그인 전
@@ -41,7 +71,8 @@ export const Header = () => {
         navigate('/login', { replace: true });
     };
 
-    console.log(me);
+    console.log(userSocket);
+    console.log(matchSocket);
 
     return (
         <header className={`relative flex justify-between items-center w-full ${statusInfo.color} p-2 shadow-md transition-all duration-300`}>
@@ -84,6 +115,15 @@ export const Header = () => {
                         <Link to="/login" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Login</Link>
                     )}
                 </nav>
+            </div>
+
+            {/* userSocket */}
+            <div className={`absolute top-full inset-x-0 z-7 max-h-0 overflow-hidden transition-all duration-300 ease ${userSocket && 'max-h-[100px]'}`}>
+                {userSocket &&
+                    <div className={`text-base font-bold text-center text-white boder-b border-slate-900 py-0.5 px-1 shadow ${userSocket.type === 'ENTRY' ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                        {`${userSocket?.user?.name}님이 ${userSocket.type === 'ENTRY' ? '입장' : '퇴장'}하셨습니다.`} { }
+                    </div>
+                }
             </div>
         </header>
     );

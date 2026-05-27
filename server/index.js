@@ -228,7 +228,7 @@ app.post('/api/users/entry', async (req, res) => {
 
         if (!updatedUser) return res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
 
-        io.emit('users:update', { type: 'ENTRY' }); // socket - users:update 부가 데이터 { type: 'ENTRY' }
+        io.emit('users:update', { type: 'ENTRY', user: updatedUser }); // socket - users:update 부가 데이터 { type: 'ENTRY' }
 
         res.status(200).json({ success: true, user: updatedUser });
     } catch (error) {
@@ -265,7 +265,7 @@ app.post('/api/users/exit', async (req, res) => {
             { isPresent: false, status: "OFFLINE", exitTime: getKSTNow(), updatedAt: getKSTNow() } // 데이터
         );
 
-        io.emit('users:update', { type: 'EXIT', userId });  // socket - users:update 부가 데이터 { type: 'EXIT', userId }
+        io.emit('users:update', { type: 'EXIT', user: exitingUser });  // socket - users:update 부가 데이터 { type: 'EXIT', userId }
 
         res.status(200).json({ success: true });
     } catch (error) {
@@ -587,8 +587,9 @@ app.delete('/api/admin/users/:userId', adminOnly, async (req, res) => {
 // 점수 롤백이 힘드므로 기록만 삭제
 app.delete('/api/admin/matches/:matchId', adminOnly, async (req, res) => {
     try {
-        const matchId = parseInt(req.params.matchId);
-        const deletedMatch = await Match.findOneAndDelete({ matchId: matchId });
+        const { matchId } = req.params;
+        const deletedMatch = await Match.findByIdAndDelete(matchId);
+        
         if (!deletedMatch) {
             return res.status(404).json({ message: '경기 기록을 찾을 수 없습니다.' });
         }
