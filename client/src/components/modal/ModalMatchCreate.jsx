@@ -3,34 +3,36 @@ import { Button } from '../common/Button';
 import { UserCard } from '../card/UserCard';
 
 export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMatchStart }) => {
-    // 초기 슬롯 설정: ADMIN가 아니면 본인(및 파트너)을 강제 포함
-    const [matchSlots, setMatchSlots] = useState(() => {
+    // State 경기 매칭 슬롯 default: [null, null, null, null]
+    const [matchSlots, setMatchSlots] = useState(() => { // 파트너 존재 && 매칭 팝업시 TeamA 는 본인 && 파트너
         let initialSlots = [null, null, null, null];
+
         if (me && me.role !== 'ADMIN') {
             initialSlots[0] = me;
+
             if (me.groupId) {
                 const partner = userList.find(u => u.id !== me.id && u.groupId === me.groupId);
-                if (partner) initialSlots[1] = partner;
+                if (partner) initialSlots[1] = partner; 
             }
         }
         return initialSlots;
     });
 
     const handleSelect = (clickedUser) => {
+        // 슬롯에 이미 들어가 있는지 검증
         const isAlreadyIn = matchSlots.some(slot => slot && slot.id === clickedUser.id);
 
         if (isAlreadyIn) {
-            // ADMIN가 아닌 경우 본인 또는 파트너는 해제 불가
             if (me && me.role !== 'ADMIN') {
-                const isMeOrPartner = clickedUser.id === me.id || 
-                                    (me.groupId && clickedUser.groupId === me.groupId);
+                const isMeOrPartner = clickedUser.id === me.id ||
+                    (me.groupId && clickedUser.groupId === me.groupId);
                 if (isMeOrPartner) {
-                    alert("본인이 포함된 경기여야 합니다.");
+                    alert("본인 || 파트너가 포함된 경기여야 합니다.");
                     return;
                 }
             }
 
-            const newSlots = matchSlots.map(slot => {
+            const newSlots = matchSlots.map(slot => { // 슬롯 해제시 target?.groupdId 일시 같이 해제
                 if (!slot) return null;
                 if (slot.id === clickedUser.id || (clickedUser.groupId && clickedUser.groupId === slot.groupId)) return null;
                 return slot;
@@ -41,7 +43,7 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
 
         const emptyCount = matchSlots.filter(slot => slot === null).length;
 
-        if (clickedUser.groupId) {
+        if (clickedUser.groupId) { // target?.groupdId 2자리 필요
             if (emptyCount < 2) return alert("빈자리가 부족합니다!");
             const partner = userList.find(user => user.id !== clickedUser.id && user.groupId === clickedUser.groupId);
             let added = 0;
@@ -84,7 +86,7 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
                                 onClick={() => matchSlots[i] && handleSelect(matchSlots[i])}
                             >
                                 {matchSlots[i] ? (
-                                    <UserCard user={matchSlots[i]} onToggle={() => { }} />
+                                    <UserCard user={matchSlots[i]} />
                                 ) : (
                                     <div className="h-12 bg-white border-2 border-dashed border-blue-200 rounded-lg flex items-center justify-center text-sm text-blue-300 font-bold">+ </div>
                                 )}
@@ -103,7 +105,7 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
                                 onClick={() => matchSlots[i] && handleSelect(matchSlots[i])}
                             >
                                 {matchSlots[i] ? (
-                                    <UserCard user={matchSlots[i]} onToggle={() => { }} />
+                                    <UserCard user={matchSlots[i]} />
                                 ) : (
                                     <div className="h-12 bg-white border-2 border-dashed border-red-200 rounded-lg flex items-center justify-center text-sm text-red-300 font-bold">+</div>
                                 )}
@@ -134,7 +136,7 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
                                                 onClick={() => handleSelect(user)}
                                                 className={`cursor-pointer transition-all ${isSelected ? "opacity-30 scale-95" : "hover:scale-100"}`}
                                             >
-                                                <UserCard user={user} onToggle={() => { }} />
+                                                <UserCard user={user} />
                                             </div>
                                         )
                                     })}

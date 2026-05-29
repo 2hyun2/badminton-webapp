@@ -1,63 +1,52 @@
-import React from 'react'
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mars, Venus } from 'lucide-react';
-const statusColor = {
-    "WAITING": {
-        "MALE": "text-blue-700 bg-blue-100 border-blue-200",
-        "남성": "text-blue-700 bg-blue-100 border-blue-200",
-        "FEMALE": "text-rose-700 bg-rose-100 border-rose-200",
-        "여성": "text-rose-700 bg-rose-100 border-rose-200"
-    },
-    "PLAYING": "text-red-700 bg-red-100 border-red-200",
-    "RESTING": "text-emerald-700 bg-emerald-100 border-emerald-200",
+
+// 성별에 따른 text, bg
+const genderColor = {
+    "MALE": "text-blue-700 bg-blue-100",
+    "남성": "text-blue-700 bg-blue-100",
+    "FEMALE": "text-rose-700 bg-rose-100",
+    "여성": "text-rose-700 bg-rose-100"
+};
+// 상태에 따른 border
+const statusBorderColor = {
+    "RESTING": "border-emerald-500", 
+    "WAITING": "border-blue-500", 
+    "PLAYING": "border-red-500", 
     "OFFLINE": "text-slate-400 bg-slate-50 border-slate-200 opacity-80"
 };
 
 export const UserCard = ({ user, onToggle }) => {
+    console.log(user)
     const navigate = useNavigate();
     const handleUserClick = (id) => navigate(`/record/${id}`);
 
-    const GenderIcon = user.gender === 'MALE' || user.gender === '남성' ? Mars : Venus;
+    const GenderIcon = user?.gender === 'MALE' || user?.gender === '남성' ? Mars : Venus;
 
-    // 색상을 결정하는 로직 분리
     const getStatusColor = () => {
-        if (!user.isPresent || user.status === 'OFFLINE') {
-            return statusColor["OFFLINE"];
-        }
+        if (!user?.isPresent || user?.status === 'OFFLINE') return statusBorderColor["OFFLINE"];
 
-        const config = statusColor[user.status];
-        if (typeof config === 'object' && config !== null) {
-            return config[user.gender] || "bg-slate-500";
-        }
-        return config || "bg-slate-500";
+        const genderClass = genderColor[user?.gender] || "";
+        const statusClass = statusBorderColor[user?.status] || "";
+
+        return `${genderClass} ${statusClass}`.trim();
     };
 
-    return (
-        <div
-            onClick={onToggle ? () => handleUserClick(user.id) : undefined}
-            className={`
-                ${getStatusColor()} 
-                inline-flex items-center rounded-lg border p-1 transition-all
-                ${onToggle  ? 'cursor-pointer hover:brightness-95' : 'cursor-default'}
-            `}
-        >
-            <div className="flex items-center gap-1">
-                <GenderIcon size={12} className="" />
-                <span className="text-sm font-semibold">{user.name}</span>
-                <span className="text-xs text-slate-900 font-medium bg-white border border-slate-500/50 rounded py-0.25 px-0.5">{user.rating}</span>
+    const cardStyle = getStatusColor();
 
-                <div className="flex items-center gap-1">
-                    {user.groupId && (
-                        <span className="text-[10px] text-red-500 font-bold">
-                            {user.groupId.slice(0, 4)}
-                        </span>
-                    )}
-                    {/* {user.todayPlayCount !== 0 && (
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-200/50 px-1 rounded">
-                            {user.todayPlayCount}회
-                        </span>
-                    )} */}
-                </div>
+    return (
+        <div 
+            onClick={() => handleUserClick(user?.id)}
+            className={`inline-flex items-center justify-between py-1 px-1.5 border rounded shadow transition-all duration-300 cursor-pointer ${cardStyle}`}
+        >
+            <div className="flex items-center gap-1 text-xs">
+                <GenderIcon size={16} />
+                <span className="font-bold">{user?.name}</span>
+                <span className="inline-block text-[10px] font-bold bg-white/80 border rounded shadow  p-0.5 opacity-80">[{user?.rating}]</span>
+                {user?.groupId && 
+                    <span className='inline-block text-[10px] text-white font-bold bg-green-500 border rounded shadow  p-0.5 opacity-80'>{user?.groupId.slice(-4)}</span>
+                }
             </div>
         </div>
     );

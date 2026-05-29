@@ -21,6 +21,9 @@ const io = new SocketIOServer(httpServer, {
 });
 io.on('connection', (socket) => {
     console.log('클라이언트 연결:', socket.id);
+    const userId = socket.handshake.query.userId;
+    if (userId) socket.join(`user_${userId}`);
+
     socket.on('disconnect', () => console.log('연결 해제:', socket.id));
 });
 
@@ -332,7 +335,19 @@ app.post("/api/match/start", async (req, res) => {
         }));
         await User.bulkWrite(bulkOps);
 
-        io.emit('match:update', { type: 'START', matchId: newMatchId });
+        // io.emit('match:update', { type: 'START', users: selectedIds, matchId: newMatchId });
+        selectedIds.forEach(id => {
+            io.to(`user_${id}`).emit('match:update', {
+                type: 'START',
+                matchId: newMatchId,
+                userId: id,
+                teamA: selectedIds.slice(0, 2), // 팀 정보 추가
+                teamB: selectedIds.slice(2, 4)
+            });
+        })
+
+        // 모든 유저의 리스트(상태)를 동기화하기 위해 전체 공지 추가
+        io.emit('users:update', { type: 'UPDATE' });
 
         res.status(200).json({ message: "매칭 성공!" });
     } catch (error) {
@@ -406,7 +421,19 @@ app.post("/api/match/end", async (req, res) => {
             });
         }
 
-        io.emit('match:update', { type: 'END', matchId });
+        matchedUser.forEach(user => {
+            io.to(`user_${user.id}`).emit('match:update', {
+                type: 'END',
+                matchId: matchId,
+                teamA: teamA.map(u => u.id),
+                teamB: teamB.map(u => u.id),
+                winner: winnerTeam,
+                eloDelta: Math.abs(ratingChange)
+            });
+        })
+
+        // 경기 종료 후 유저들의 상태 변화를 모든 클라이언트에 반영
+        io.emit('users:update', { type: 'UPDATE' });
 
         res.status(200).json({ message: "결과 반영 완료" });
     } catch (err) {
@@ -589,7 +616,7 @@ app.delete('/api/admin/matches/:matchId', adminOnly, async (req, res) => {
     try {
         const { matchId } = req.params;
         const deletedMatch = await Match.findByIdAndDelete(matchId);
-        
+
         if (!deletedMatch) {
             return res.status(404).json({ message: '경기 기록을 찾을 수 없습니다.' });
         }
