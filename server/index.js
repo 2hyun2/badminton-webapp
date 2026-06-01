@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
     playCount: { type: Number, default: 0 },
     wins: { type: Number, default: 0 },
     losses: { type: Number, default: 0 },
-    role: { type: String, default: "USER" },
+    role: { type: String, default: "USER", enum: ["USER", "MANAGER", "ADMIN"] },
     joinedAt: { type: Date, default: getKSTNow },
     updatedAt: { type: Date, default: getKSTNow },
     bio: { type: String, default: "" },
@@ -607,6 +607,37 @@ app.delete('/api/admin/users/:userId', adminOnly, async (req, res) => {
         res.status(200).json({ success: true, message: '사용자가 삭제되었습니다.' });
     } catch (error) {
         res.status(500).json({ message: '삭제 실패' });
+    }
+});
+// 관리자 전용 유저 등급 변경
+app.post('/api/admin/users/:userId/update-role', adminOnly, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId);
+        const { role } = req.body;
+        // 관리자 자살 방지 로직: 요청을 보낸 관리자가 자신의 등급을 변경하려고 할 때 방지
+        if (req.user.userId === userId && req.user.role === 'ADMIN') {
+            return res.status(403).json({ message: '관리자는 자신의 등급을 변경할 수 없습니다.' });
+        }
+
+        // 데이터 에러 처리
+        if (isNaN(userId)) return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' });
+        if (!role) return res.status(400).json({ message: '업데이트할 등급(role)이 없습니다.' });
+        // 등급 제어 ['USER', 'MANAGER']
+        const isAllowedRole = ['USER', 'MANAGER'].includes(role);
+        if (!isAllowedRole) return res.status(400).json({ message: '허용되지 않은 등급 권한입니다.' });
+        // DB 제어
+        const updatedUser = await User.findOneAndUpdate(
+            { id: userId },
+            { $set: { role, updatedAt: getKSTNow() } },
+            { new: true }
+        );
+
+        io.emit('users:update', { type: 'UPDATE' });
+
+        res.status(200).json({ success: true, message: '등급이 성공적으로 변경되었습니다.', user: updatedUser });
+
+    } catch (error) {
+        res.status(500).json({ message: '등급 변경 실패' });
     }
 });
 // 관리자 전용 특정 경기 기록 삭제(무효화) API

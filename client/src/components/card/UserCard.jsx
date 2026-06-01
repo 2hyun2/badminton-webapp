@@ -18,7 +18,6 @@ const statusBorderColor = {
 };
 
 export const UserCard = ({ user, onToggle }) => {
-    console.log(user)
     const navigate = useNavigate();
     const handleUserClick = (id) => navigate(`/record/${id}`);
 
