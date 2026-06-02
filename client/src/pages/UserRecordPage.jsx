@@ -1,40 +1,33 @@
 import React, { useState, useMemo } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useUsers } from '../hooks/useUsers'
 import { useMatches } from '../hooks/useMatches'
-import { useNavigate, useParams } from 'react-router-dom'
-import { UserCard } from './card/UserCard'
+import { UserCard } from '../components/card/UserCard'
+import { timeAgo } from '../utils/timeAgo'
 
-export const Record = () => {
+export const UserRecordPage = () => {
     const navigate = useNavigate();
-    const { id: paramId } = useParams(); // URL의 :id 파라미터와 이름을 맞춰야 합니다.
-
-    // React Query
+    const { id: paramId } = useParams(); // URL :id = paramId
     const { me, userList } = useUsers();
     const { matchHistory, isLoading, isError } = useMatches();
-
-    // 조회 대상 유저 결정: 파라미터가 있으면 해당 유저, 없으면 나(me)
-    const targetUser = useMemo(() => {
+    // useMemo
+    const targetUser = useMemo(() => { // 특정 param 미존재시 본인
         if (!paramId) return me;
-        // paramId가 문자열로 오므로 숫자로 변환하여 userList에서 찾습니다.
-        return userList?.find(u => u.id === Number(paramId));
+        return userList?.find(user => user.id === Number(paramId));
     }, [paramId, userList, me]);
-
-    // 최근 경기 수 default: 10
-    const [viewCount, setViewCount] = useState(10);
-
-    // matchHistory - 대상 유저가 참여한 경기
-    const allTargetMatches = useMemo(() => {
+    
+    const allTargetMatches = useMemo(() => { // 본인이 포함된 경기 필터 & 정렬
         if (!matchHistory || !targetUser?.id) return [];
         return matchHistory
             .filter(match => match?.teamA?.includes(targetUser.id) || match?.teamB?.includes(targetUser.id))
-            // 최근 경기가 항상 배열 앞쪽으로 오도록 명시적 정렬 추가
             .sort((a, b) => new Date(b.matchDate) - new Date(a.matchDate));
     }, [matchHistory, targetUser?.id]);
+    // useState
+    const [viewCount, setViewCount] = useState(10); // 최근 경기 수 default: 10
 
-    // 사용자 경기수, 최근 경기수 최소값 찾기
+    // 타겟 경기, 설정 숫자 최소치 
     const effectiveViewCount = Math.min(viewCount, allTargetMatches.length);
-
-    // 전체 경기 잘라내기
+    // 타겟 경기, 설정 숫자만큼 잘라내기
     const displayedMatches = useMemo(() => {
         return allTargetMatches.slice(0, effectiveViewCount);
     }, [allTargetMatches, effectiveViewCount]);
@@ -48,36 +41,40 @@ export const Record = () => {
         const opponentStats = {}; // 상대 팀원별 판 수 및 진 판 수 저장소 { 유저ID: { games, losses } }
         const frequentCounts = {}; // 같이 게임한 모든 유저의 빈도수 저장소 { 유저ID: 만난 횟수 }
 
+        // 유저 리스트를 ID 기반 Map으로 변환
+        const userMap = new Map(userList?.map(user => [user.id, user])); // user.id 를 따로 빼내 최적화
+
         displayedMatches.forEach(match => {
             const isTeamA = match.teamA.includes(targetUser.id); // 대상 유저가 Team A에 속해있는지 여부
             const myTeam = isTeamA ? match.teamA : match.teamB; // 내가 속한 팀 배열 구하기
             const enemyTeam = isTeamA ? match.teamB : match.teamA; // 내가 맞선 상대 팀 배열 구하기
 
-            // 승리 판정 TeamA && A || TeamB && B
-            const isWin = match.winner === (isTeamA ? "A" : "B");
+            // 승리 카운트
+            const isWin = match.winner === (isTeamA ? "A" : "B"); // 내가 팀A 인가? return A, B match.winner === return A || B
             if (isWin) totalWins++; // 승리 카운트 +1
-
+            // 
             myTeam.forEach(played => { // 내가 속한 팀 배열 반복문
                 if (played === targetUser.id) return; // 대상 유저 본인 제외
-                frequentCounts[played] = (frequentCounts[played] || 0) + 1; // 만난 빈도수 누적
+                frequentCounts[played] = (frequentCounts[played] || 0) + 1; // // 만난 빈도수 누적 undefined 시 0 + 1
 
-                // 파트너 통계 객체 생성 및 누적 (판 수 추가, 이겼으면 승리 수 추가)
+                // partnerStats 객체 생성 및 계산 partnerStats.game ++ 
                 if (!partnerStats[played]) partnerStats[played] = { games: 0, wins: 0 };
                 partnerStats[played].games++;
-                if (isWin) partnerStats[played].wins++;
+                if (isWin) partnerStats[played].wins++; // partnerStats.wins ++
             });
 
             enemyTeam.forEach(played => { // 상대 팀 배열 반복문
-                frequentCounts[played] = (frequentCounts[played] || 0) + 1;
-                // 천적 통계 객체 생성 및 누적 (판 수 추가, 내가 졌으면 상대의 패배 안겨준 수 추가)
+                frequentCounts[played] = (frequentCounts[played] || 0) + 1; // 만난 빈도수 누적 undefined 시 0 + 1
+
+                // opponentStats 객체 생성 및 계산 opponentStats.game ++
                 if (!opponentStats[played]) opponentStats[played] = { games: 0, losses: 0 };
                 opponentStats[played].games++;
-                if (!isWin) opponentStats[played].losses++; // 내가 졌을 때 상대방의 '나를 이긴 횟수(losses)' 증가
+                if (!isWin) opponentStats[played].losses++; // opponentStats.losses ++
             });
         });
 
         // 유저 ID를 가지고 유저 객체 찾아주는 헬퍼 함수
-        const getUserObjectById = (id) => userList?.find(u => u.id === id);
+        const getUserObjectById = (id) => userMap.get(id);
 
         const totalGames = displayedMatches.length; // 현재 선택된 경기 수
         const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : 0; // 내 승률 (소수점 첫째짜리까지)
@@ -103,16 +100,20 @@ export const Record = () => {
             .filter(item => item.user) // userList에 없는 유저는 제외
             .sort((a, b) => b.rate - a.rate || b.games - a.games)[0]; // 나를 이긴 비율이 높은 순 정렬 후 첫 번째 사람
 
+            console.log(winRate)
+            console.log(topFrequent)
+            console.log(bestPartnerEntry)
+            console.log(nemesisEntry)
         return { winRate, topFrequent, bestPartner: bestPartnerEntry, nemesis: nemesisEntry };
     }, [displayedMatches, targetUser?.id, userList]);
 
-    if (isLoading || !targetUser) { return <div className="p-10 text-center text-slate-400">데이터를 불러오는 중...</div> }
+    if (isLoading || !targetUser) { return <div className="p-10 text-center text-slate-400">개인 기록 데이터를 불러오는 중...</div> }
     if (allTargetMatches.length === 0) { return <div className="p-10 text-center text-slate-400">기록된 경기가 없습니다.</div> }
 
     return (
         <div className='space-y-4'>
             <div className="text-center space-y-2">
-                <h2 className='pages-title uppercase'>{targetUser.name}'s Profile</h2>
+                <h2 className='pages-title uppercase'>{targetUser.name}'님의 개인 기록</h2>
                 
                 {/* 자기소개 메시지 */}
                 {targetUser.bio && (
@@ -137,6 +138,9 @@ export const Record = () => {
                         Rating: {targetUser.rating}
                     </span>
                 </div>
+                {targetUser.status === 'OFFLINE' && 
+                    <p className="text-[10px] text-slate-400">마지막 접속일 {timeAgo(targetUser.entryTime)}</p>
+                }
                 <p className="text-[10px] text-slate-400 italic">각 통계 항목당 최소 5경기의 기록이 필요합니다.</p>
             </div>
 

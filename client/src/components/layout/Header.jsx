@@ -134,20 +134,21 @@ export const Header = () => {
             {/* 햄버거 메뉴바 컨텐츠 */}
             <div className={`absolute top-full left-0 right-0 w-full text-white ${statusInfo.color} z-50 overflow-hidden transition-all duration-300 ease ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-[0px] opacity-0'}`}>
                 <nav className="flex flex-col text-base font-semibold text-right border-t border-slate-100 [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)]">
-                    <Link to="/" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Home</Link>
-                    <Link to="/ranking" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Rankings</Link>
-                    <Link to="/record" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Records</Link>
-                    <Link to="/history" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">History</Link>
-                    <Link to="/mypage" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">My Page</Link>
+                    <Link to="/" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">메인</Link>
+                    <Link to="/members" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">회원 목록</Link>
+                    <Link to="/ranking" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">종합 순위</Link>
+                    <Link to="/record" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">개인 기록</Link>
+                    <Link to="/history" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">경기 목록</Link>
+                    <Link to="/mypage" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">내 정보</Link>
                     {user ? (
                         <>
-                            <button onClick={handleLogout} className="w-full text-right border-b border-slate-100 p-2 cursor-pointer [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)] hover:bg-blue-700">Logout</button>
+                            <button onClick={handleLogout} className="w-full text-right border-b border-slate-100 p-2 cursor-pointer [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)] hover:bg-blue-700">로그아웃</button>
                             {user.role === 'ADMIN' && (
                                 <Link to="/admin" onClick={closeMenu} className="bg-red-500 text-white border-b border-slate-100 p-2">관리자 페이지</Link>
                             )}
                         </>
                     ) : (
-                        <Link to="/login" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">Login</Link>
+                        <Link to="/login" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">로그인</Link>
                     )}
                 </nav>
             </div>

@@ -252,7 +252,7 @@ app.post('/api/users/exit', async (req, res) => {
             // userList - { matchId 일치 }, { 상태 강제 변경 } 업데이트 데이터 return X
             await User.updateMany(
                 { matchId: exitingUser.matchId },
-                { status: "RESTING", matchId: null, updatedAt: getKSTNow() }
+                { status: "RESTING", matchId: null, groupId: null, updatedAt: getKSTNow() }
             );
 
             io.emit('match:canceled', {
@@ -265,7 +265,7 @@ app.post('/api/users/exit', async (req, res) => {
         // 유저 한명 서버에 업데이트
         await User.updateOne(
             { id: userId }, // 조건
-            { isPresent: false, status: "OFFLINE", exitTime: getKSTNow(), updatedAt: getKSTNow() } // 데이터
+            { isPresent: false, status: "OFFLINE", groupId: null, exitTime: getKSTNow(), updatedAt: getKSTNow() } // 데이터
         );
 
         io.emit('users:update', { type: 'EXIT', user: exitingUser });  // socket - users:update 부가 데이터 { type: 'EXIT', userId }

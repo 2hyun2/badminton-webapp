@@ -2,8 +2,6 @@ import { useState } from 'react';
 
 export const ModalAdminRoleUpdate = ({ user, roles, onAction, onClose }) => {
     const [newRole, setNewRole] = useState(user?.role || 'USER');
-    console.log('??')
-    console.log(user, roles)
 
     const handleConfirm = () => {
         onAction('role', user, { role: newRole });

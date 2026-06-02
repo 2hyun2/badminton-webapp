@@ -11,11 +11,12 @@ export const Button = ({
     disabled = false
 }) => {
 
-    const baseStyles = "inline-flex items-center justify-center rounded-lg font-bold transition-all shadow-sm focus:outline-none disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed";
+    const baseStyles = "inline-flex items-center justify-center font-bold rounded-lg shadow transition-all duration-300 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed";
 
     const variants = {
         blue: "bg-blue-500 hover:bg-blue-600 text-white",
         red: "bg-red-500 hover:bg-red-600 text-white",
+        emerald: "bg-emerald-500 hover:bg-emerald-600 text-white",
         gray: "bg-slate-100 hover:bg-slate-200 text-slate-700",
         outline: "border-2 border-slate-200 hover:bg-slate-50 text-slate-600"
     };
@@ -32,7 +33,7 @@ export const Button = ({
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+            className={`${className} ${baseStyles} ${variants[variant]} ${sizes[size]}`}
         >
             {Icon && <Icon className="w-5 h-5 mr-2" />}
             {children}

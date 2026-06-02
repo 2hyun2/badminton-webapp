@@ -1,10 +1,10 @@
 import React from 'react'
-import { useAdmin } from '../../hooks/useAdmin';
-import { useMatches } from '../../hooks/useMatches';
-import { useUsers } from '../../hooks/useUsers';
-import { UserCard } from '../card/UserCard';
+import { useAdmin } from '../hooks/useAdmin';
+import { useMatches } from '../hooks/useMatches';
+import { useUsers } from '../hooks/useUsers';
+import { UserCard } from '../components/card/UserCard';
 
-const AdminMatches = () => {
+export const AdminMatches = () => {
 
     const { deleteMatchMutation } = useAdmin();
     const { matchHistory, isLoading, isError } = useMatches();

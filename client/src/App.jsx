@@ -1,21 +1,24 @@
 import { React, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
-
+// layout
 import { DefaultLayout } from './components/layout/DefaultLayout'
 import { ProtectedLayout } from './components/layout/ProtectedLayout'
-
-import { MainPage } from './pages/MainPage'
+import { AdminLayout } from './components/layout/AdminLayout'
+// default
 import { JoinPage } from './pages/JoinPage'
 import { LoginPage } from './pages/LoginPage'
-import { MatchHistory } from './components/MatchHistory'
-import { Record } from './components/Record'
-import { Ranking } from './components/Ranking'
-import { MyPage } from './components/MyPage'
+// protected
+import { MainPage } from './pages/MainPage'
+import { UserListPage } from './pages/UserListPage'
+import { UserRankingPage } from './pages/UserRankingPage'
+import { UserRecordPage } from './pages/UserRecordPage'
 
-import { AdminLayout } from './components/layout/AdminLayout'
-import { AdminIndex } from './components/admin/AdminIndex'
-import { AdminUsers } from './components/admin/AdminUsers'
-import AdminMatches from './components/admin/AdminMatches'
+import { MatchHistory } from './components/MatchHistory'
+import { MyPage } from './components/MyPage'
+// admin
+import { AdminIndex } from './pages/AdminIndex'
+import { AdminUsers } from './pages/AdminUsers'
+import { AdminMatches } from './pages/AdminMatches'
 
 const App = () => {
     return (
@@ -26,9 +29,10 @@ const App = () => {
             </Route>
             <Route element={<ProtectedLayout />}>
                 <Route path='/' element={<MainPage />} />
-                <Route path='/ranking' element={<Ranking />} />
-                <Route path='/record' element={<Record />} />
-                <Route path='/record/:id' element={<Record />} />
+                <Route path='/members' element={<UserListPage />} />
+                <Route path='/ranking' element={<UserRankingPage />} />
+                <Route path='/record' element={<UserRecordPage />} />
+                <Route path='/record/:id' element={<UserRecordPage />} />
                 <Route path='/history' element={<MatchHistory />} />
                 <Route path='/mypage' element={<MyPage />} />
                 <Route element={<AdminLayout />}>

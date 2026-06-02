@@ -35,14 +35,10 @@ export const useAdmin = () => {
     const updateRoleMutation = useMutation({
         mutationFn: async ({ userId, role }) => {
             // 본인의 등급을 직접 변경하려는 경우 API 호출 전 차단
-            if (authUser?.id === userId) {
-                throw new Error('본인의 관리자 등급은 스스로 변경할 수 없습니다.');
-            }
+            if (authUser?.id === userId) throw new Error('본인의 등급은 스스로 변경할 수 없습니다.');
 
             const isAllowedRole = allowedRoles.includes(role);
-            if (!isAllowedRole) {
-                throw new Error('허용되지 않는 등급 권한입니다.');
-            }
+            if (!isAllowedRole) throw new Error('허용되지 않은 등급입니다..');
             //  backend 에서 role 은 객체로 받음
             const response = await api.post(`admin/users/${userId}/update-role`, { role });
             return response.data;
