@@ -11,8 +11,6 @@ export const UserRankingPage = () => {
     const { matchHistory, isLoading, isError } = useMatches(filterParam);
     const { userList } = useUsers();
 
-    console.log(matchHistory)
-
     const rankings = useMemo(() => { // 핵심 로직
         if (!userList || !matchHistory) return null;
         // 판별 데이터 1 {wins, totalGames, rating}
@@ -120,7 +118,7 @@ export const UserRankingPage = () => {
                         <div key={user.id} className="flex items-center justify-between border-b border-slate-300 p-2">
                             <div className="flex items-center gap-2">
                                 <span className={`w-4 font-bold text-center ${index < 3 ? 'text-amber-500' : 'text-slate-900'}`}>{index + 1}</span>
-                                <UserCard user={user} onToggle={() => {user.id}} />
+                                <UserCard user={user} onNavigate={() => {true}} />
                             </div>
                             <span className="font-bold text-blue-600">{user.rating}점</span>
                         </div>
@@ -136,7 +134,7 @@ export const UserRankingPage = () => {
                         <div key={user.id} className="flex items-center justify-between border-b border-slate-300 p-2">
                             <div className="flex items-center gap-2">
                                 <span className={`w-4 font-bold text-center ${index < 3 ? 'text-emerald-500' : 'text-slate-900'}`}>{index + 1}</span>
-                                <UserCard user={user} onToggle={() => {user.id}} />
+                                <UserCard user={user} onNavigate={() => {true}} />
                             </div>
                             <span className="font-bold text-emerald-600">{user.winRate.toFixed(1)}%</span>
                         </div>
@@ -152,7 +150,7 @@ export const UserRankingPage = () => {
                         <div key={user.id} className="flex items-center justify-between border-b border-slate-300 p-2">
                             <div className="flex items-center gap-2">
                                 <span className={`w-4 font-bold text-center ${index < 3 ? 'text-red-500' : 'text-slate-900'}`}>{index + 1}</span>
-                                <UserCard user={user} onToggle={() => {user.id}} />
+                                <UserCard user={user} onNavigate={() => {true}} />
                             </div>
                             <span className="text-red-400 font-bold">{user.totalGames}경기</span>
                         </div>
@@ -169,7 +167,7 @@ export const UserRankingPage = () => {
                         <div key={user.id} className="flex items-center justify-between border-b border-slate-300 p-2">
                             <div className="flex items-center gap-2">
                                 <span className={`w-4 font-bold text-center ${index < 3 ? 'text-blue-500' : 'text-slate-400'}`}>{index + 1}</span>
-                                <UserCard user={user} onToggle={() => {user.id}} />
+                                <UserCard user={user} onNavigate={() => {true}} />
                             </div>
                             <span className={`font-bold ${user.totalRatingChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                                 {user.totalRatingChange > 0 ? '+' : ''}{user.totalRatingChange}점

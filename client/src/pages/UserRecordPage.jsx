@@ -100,10 +100,6 @@ export const UserRecordPage = () => {
             .filter(item => item.user) // userList에 없는 유저는 제외
             .sort((a, b) => b.rate - a.rate || b.games - a.games)[0]; // 나를 이긴 비율이 높은 순 정렬 후 첫 번째 사람
 
-            console.log(winRate)
-            console.log(topFrequent)
-            console.log(bestPartnerEntry)
-            console.log(nemesisEntry)
         return { winRate, topFrequent, bestPartner: bestPartnerEntry, nemesis: nemesisEntry };
     }, [displayedMatches, targetUser?.id, userList]);
 
@@ -157,12 +153,12 @@ export const UserRecordPage = () => {
                     </div>
                     <div className="space-y-1 border border-slate-300 rounded-xl p-2">
                         <p className="text-slate-500">최고의 파트너</p>
-                        {stats.bestPartner?.user ? <UserCard key={stats.bestPartner.user.id} user={stats.bestPartner.user} onToggle={stats.bestPartner.user.id} /> : <p className="text-sm font-bold truncate">없음</p>}
+                        {stats.bestPartner?.user ? <UserCard key={stats.bestPartner.user.id} user={stats.bestPartner.user} onNavigate={true} /> : <p className="text-sm font-bold truncate">없음</p>}
                         {stats.bestPartner && <p className="text-xs text-blue-500">{stats.bestPartner.rate.toFixed(0)}% 승률</p>}
                     </div>
                     <div className="space-y-1 border border-slate-300 rounded-xl p-2">
                         <p className="text-slate-500">나의 천적</p>
-                        {stats.nemesis?.user ? <UserCard key={stats.nemesis.user.id} user={stats.nemesis.user} onToggle={stats.nemesis.user.id} /> : <p className="font-bold truncate">없음</p>}
+                        {stats.nemesis?.user ? <UserCard key={stats.nemesis.user.id} user={stats.nemesis.user} onNavigate={true} /> : <p className="font-bold truncate">없음</p>}
                         {stats.nemesis && <p className="text-xs text-red-500">{stats.nemesis.rate.toFixed(0)}% 패배율</p>}
                     </div>
                 </section>
@@ -204,7 +200,7 @@ export const UserRecordPage = () => {
                 <div className="flex flex-wrap gap-2">
                     {stats?.topFrequent.map((player, i) => (
                         <div key={player.user.id || i} className="text-xs border border-slate-300/40 rounded-lg p-1 shadow-lg">
-                            {player.user ? <UserCard key={player.user.id} user={player.user} onToggle={player.user.id} /> : <span className="font-semibold">알 수 없음</span>}
+                            {player.user ? <UserCard key={player.user.id} user={player.user} onNavigate={true} /> : <span className="font-semibold">알 수 없음</span>}
                             <span className="ml-1 text-slate-400">{player.count}회</span>
                         </div>
                     ))}

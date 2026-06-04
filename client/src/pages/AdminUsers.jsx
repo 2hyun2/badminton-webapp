@@ -58,7 +58,7 @@ export const AdminUsers = () => {
                         <details className='border border-slate-100 rounded-lg shadow-md p-2 cursor-pointer transition-all duration-300 hover:border-slate-500 open:border-slate-900'>
 
                             <summary className="flex gap-2 items-center justify-between">
-                                <UserCard user={user} onToggle={user.id} />
+                                <UserCard user={user} onNavigate={true} />
                                 <span className='text-xs text-slate-400'>{timeAgo(user.entryTime)}</span>
                             </summary>
 

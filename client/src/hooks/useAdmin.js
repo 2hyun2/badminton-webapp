@@ -44,7 +44,6 @@ export const useAdmin = () => {
             return response.data;
         },
         onSuccess: (data) => {
-            console.log("변경 완료된 유저 데이터:", data.user);
             alert(data.message);
 
             queryClient.invalidateQueries({ queryKey: ['adminUsers'] });

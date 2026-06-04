@@ -17,9 +17,11 @@ const statusBorderColor = {
     "OFFLINE": "text-slate-400 bg-slate-50 border-slate-200 opacity-80"
 };
 
-export const UserCard = ({ user, onToggle }) => {
+export const UserCard = ({ user, onNavigate }) => {
     const navigate = useNavigate();
-    const handleUserClick = (id) => navigate(`/record/${id}`);
+    const handleUserClick = (id) => { 
+        if (onNavigate) navigate(`/record/${id}`);
+    }
 
     const GenderIcon = user?.gender === 'MALE' || user?.gender === '남성' ? Mars : Venus;
 

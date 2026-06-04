@@ -18,10 +18,7 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
     const prefTypes = ["자유", "혼복", "남복", "여복"];
 
     return (
-        <div 
-            className="modal-overlay" 
-            onClick={(e) => e.target === e.currentTarget ? onClose() : null}
-        >
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget ? onClose() : null} >
             <div 
                 className="modal-container" 
                 ref={modalRef}
@@ -30,25 +27,17 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
             >
                 <h3 className="modal-title">대기열 등록</h3>
 
-                <div className="flex justify-center gap-2 mb-6">
+                <div className="flex justify-center gap-2">
                     {prefTypes.map(type => (
-                        <Button
-                            key={type}
-                            onClick={() => setSelectedPref(type)}
-                            variant={selectedPref === type ? 'blue' : 'gray'}
-                            size="md"
-                            className="focus:ring-2 focus:ring-blue-400 outline-none"
-                        >
-                            {type}
-                        </Button>
+                        <Button key={type} onClick={() => setSelectedPref(type)} variant={selectedPref === type ? 'blue' : 'gray'} size="flex" className="focus:ring-2 focus:ring-blue-400 outline-none">{type}</Button>
                     ))}
                 </div>
 
-                <div className="mb-6">
+                <div className="">
                     <select
                         value={selectedPartnerId}
                         onChange={(e) => setSelectedPartnerId(e.target.value)}
-                        className="w-full p-3 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full input-default"
                     >
                         <option value="">파트너 없음 (개인 신청)</option>
                         {userList
@@ -63,8 +52,8 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
                 </div>
 
                 <div className="flex gap-2">
-                    <Button onClick={onClose} size='md' variant="gray" className="flex-1">취소</Button>
-                    <Button onClick={handleConfirm} size='md' variant="blue" className="flex-1">등록</Button>
+                    <Button onClick={onClose} size='flex' variant="gray" className="flex-1">취소</Button>
+                    <Button onClick={handleConfirm} size='flex' variant="blue" className="flex-1">등록</Button>
                 </div>
             </div>
         </div>

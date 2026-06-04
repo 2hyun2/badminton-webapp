@@ -94,7 +94,7 @@ export const ProtectedLayout = () => {
                         {location.pathname !== '/' && (
                             <button
                                 onClick={() => navigate(-1)}
-                                className="sticky top-0 z-100 text-slate-500 bg-white/80 backdrop-blur-sm p-1 m-0 rounded-md shadow-sm cursor-pointer transition-all ease-0.3 hover:bg-blue-500 hover:text-white hover:shadow-[0]"
+                                className="sticky top-0 z-10 text-slate-500 bg-white/80 backdrop-blur-sm p-1 m-0 rounded-md shadow-sm cursor-pointer transition-all ease-0.3 hover:bg-blue-500 hover:text-white hover:shadow-[0]"
                                 aria-label="뒤로가기"
                             >
                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>

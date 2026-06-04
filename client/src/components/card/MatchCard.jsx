@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 export const MatchCard = ({ matchId, players, onOpenModal }) => {
     const navigate = useNavigate();
     const { me } = useUsers();
-    const handleUserClick = (id) => navigate(`/record/${id}`);
 
     const isAdmin = me?.role === 'admin';
 
@@ -44,7 +43,7 @@ export const MatchCard = ({ matchId, players, onOpenModal }) => {
                         <span className="font-bold">Avg. {avgA}</span>
                     </div>
                     {teamAPlayers.map(player => (
-                        <UserCard key={player.id} user={player} onToggle={handleUserClick} />
+                        <UserCard key={player.id} user={player} onNavigate={true} />
                     ))}
                 </div>
 
@@ -60,7 +59,7 @@ export const MatchCard = ({ matchId, players, onOpenModal }) => {
                         <span className="font-bold">Avg. {avgB}</span>
                     </div>
                     {teamBPlayers.map(player => (
-                        <UserCard key={player.id} user={player} onToggle={handleUserClick} />
+                        <UserCard key={player.id} user={player} onNavigate={true} />
                     ))}
                 </div>
             </div>

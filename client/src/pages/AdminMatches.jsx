@@ -56,7 +56,7 @@ export const AdminMatches = () => {
                                         </div>
                                         <div className="space-y-1">
                                             {teamAUsers.length > 0
-                                                ? teamAUsers.map(user => <UserCard key={user.id} user={user} onToggle={user.id} />)
+                                                ? teamAUsers.map(user => <UserCard key={user.id} user={user} onNavigate={true} />)
                                                 : match.teamA.map(id => <div key={id} className="text-xs text-slate-500">Player {id}</div>)
                                             }
                                         </div>
@@ -80,7 +80,7 @@ export const AdminMatches = () => {
                                         </div>
                                         <div className="space-y-1">
                                             {teamBUsers.length > 0
-                                                ? teamBUsers.map(user => <UserCard key={user.id} user={user} onToggle={user.id} />)
+                                                ? teamBUsers.map(user => <UserCard key={user.id} user={user} onNavigate={true} />)
                                                 : match.teamB.map(id => <div key={id} className="text-xs text-slate-500">Player {id}</div>)
                                             }
                                         </div>

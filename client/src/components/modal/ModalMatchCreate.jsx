@@ -12,7 +12,7 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
 
             if (me.groupId) {
                 const partner = userList.find(u => u.id !== me.id && u.groupId === me.groupId);
-                if (partner) initialSlots[1] = partner; 
+                if (partner) initialSlots[1] = partner;
             }
         }
         return initialSlots;
@@ -75,78 +75,71 @@ export const ModalMatchCreate = ({ me, userList, waitingCategory, onClose, onMat
             {/* 매칭 보드 UI 영역 */}
             <div className="modal-container">
                 <h3 className="modal-title">경기 매칭 보드</h3>
-                <div className="flex w-full max-w-md justify-between items-center gap-2 mb-4">
+                <div className="flex gap-2 items-center justify-between">
                     {/* Team A 슬롯 */}
-                    <div className="flex-1 p-2 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="text-xs font-bold text-blue-600  mb-2">TEAM A</div>
-                        {[0, 1].map(i => (
-                            <div
-                                key={i}
-                                className="mb-1 cursor-pointer transition-all hover:scale-[0.98]"
-                                onClick={() => matchSlots[i] && handleSelect(matchSlots[i])}
-                            >
-                                {matchSlots[i] ? (
-                                    <UserCard user={matchSlots[i]} />
-                                ) : (
-                                    <div className="h-12 bg-white border-2 border-dashed border-blue-200 rounded-lg flex items-center justify-center text-sm text-blue-300 font-bold">+ </div>
-                                )}
-                            </div>
-                        ))}
-                        <div className="text-[10px]  text-gray-400">평균: {getAvg(matchSlots[0], matchSlots[1])}</div>
+                    <div className="space-y-2 flex-1 p-1 bg-blue-200 border border-blue-500 rounded-lg shadow">
+                        <div className="text-sm font-bold text-blue-600">TEAM A</div>
+                        <div className="flex flex-col gap-1">
+                            {[0, 1].map(i => (
+                                <div key={i} onClick={() => matchSlots[i] && handleSelect(matchSlots[i])} >
+                                    {matchSlots[i] ? (
+                                        <UserCard user={matchSlots[i]} />
+                                    ) : (
+                                        <div className="text-sm text-blue-300 font-bold text-center bg-white border-2 border-dashed border-blue-500 rounded p-1 overflow-hidden">+</div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="text-xs text-slate-600 font-bold">평균: {getAvg(matchSlots[0], matchSlots[1])}</div>
                     </div>
                     <div className="italic font-black text-red-500">VS</div>
                     {/* Team B 슬롯 */}
-                    <div className="flex-1 p-2 bg-red-50 rounded-lg border border-red-200">
-                        <div className="text-xs font-bold text-red-600  mb-2">TEAM B</div>
-                        {[2, 3].map(i => (
-                            <div
-                                key={i}
-                                className="mb-1 cursor-pointer transition-all hover:scale-[0.98]"
-                                onClick={() => matchSlots[i] && handleSelect(matchSlots[i])}
-                            >
-                                {matchSlots[i] ? (
-                                    <UserCard user={matchSlots[i]} />
-                                ) : (
-                                    <div className="h-12 bg-white border-2 border-dashed border-red-200 rounded-lg flex items-center justify-center text-sm text-red-300 font-bold">+</div>
-                                )}
-                            </div>
-                        ))}
-                        <div className="text-[10px]  text-gray-400">평균: {getAvg(matchSlots[2], matchSlots[3])}</div>
-                    </div>
-                </div>
-
-                <div className="w-full max-w-md flex gap-2">
-                    <Button onClick={onClose} variant="gray" className="flex-1">닫기</Button>
-                    <Button onClick={handleConfirm} disabled={matchSlots.includes(null)} variant="blue" className="flex-1">경기 시작</Button>
-                </div>
-
-                <div className="flex-1 rounded overflow-y-auto">
-                    <div className="flex-1 bg-gray-100 p-4 overflow-y-auto">
-                        {Object.entries(waitingCategory).map(([category, players]) => (
-                            <div key={category} className='mb-2'>
-                                <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-300 pb-1 mb-2">
-                                    {category} <span className="text-blue-500">{players.length}명</span>
-                                </h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {players.map((user) => {
-                                        const isSelected = matchSlots.some((s) => s?.id === user.id);
-                                        return (
-                                            <div
-                                                key={user.id}
-                                                onClick={() => handleSelect(user)}
-                                                className={`cursor-pointer transition-all ${isSelected ? "opacity-30 scale-95" : "hover:scale-100"}`}
-                                            >
-                                                <UserCard user={user} />
-                                            </div>
-                                        )
-                                    })}
+                    <div className="space-y-2 flex-1 p-1 bg-red-200 border border-red-500 rounded-lg shadow">
+                        <div className="text-sm font-bold text-red-600">TEAM B</div>
+                        <div className="flex flex-col gap-1">
+                            {[2, 3].map(i => (
+                                <div key={i} onClick={() => matchSlots[i] && handleSelect(matchSlots[i])} >
+                                    {matchSlots[i] ? (
+                                        <UserCard user={matchSlots[i]} />
+                                    ) : (
+                                        <div className="text-sm text-red-300 font-bold text-center bg-white border-2 border-dashed border-red-500 rounded p-1 overflow-hidden">+</div>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
+                        <div className="text-xs text-slate-600 font-bold">평균: {getAvg(matchSlots[2], matchSlots[3])}</div>
                     </div>
+                </div>
+
+                <div className="flex gap-2">
+                    <Button onClick={onClose} variant="gray" size={'flex'}>닫기</Button>
+                    <Button onClick={handleConfirm} disabled={matchSlots.includes(null)} variant="blue" size={'flex'}>경기 시작</Button>
+                </div>
+
+                <div className="flex-1 bg-gray-100 rounded-lg shadow p-2 overflow-hidden">
+                    {Object.entries(waitingCategory).map(([category, players]) => (
+                        <div key={category} className='mb-2'>
+                            <h4 className="text-sm font-semibold text-slate-900 border-b border-slate-300 pb-1 mb-2">
+                                {category} <span className="text-blue-500">{players.length}명</span>
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {players.map((user) => {
+                                    const isSelected = matchSlots.some((s) => s?.id === user.id);
+                                    return (
+                                        <div
+                                            key={user.id}
+                                            onClick={() => handleSelect(user)}
+                                            className={`cursor-pointer transition-all ${isSelected ? "opacity-30" : ""}`}
+                                        >
+                                            <UserCard user={user} />
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
-
 
         </div>
     );

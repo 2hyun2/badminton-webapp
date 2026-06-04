@@ -24,7 +24,7 @@ export const Button = ({
     const sizes = {
         flex: "flex-1 px-4 py-2 text-sm",
         sm: "px-4 py-2 text-sm",
-        md: "p-4 text-lg w-full",
+        md: "py-3 px-1 text-lg w-full",
         lg: "px-8 py-4 text-xl w-full"
     };
 

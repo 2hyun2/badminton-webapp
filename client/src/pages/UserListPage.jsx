@@ -49,7 +49,7 @@ export const UserListPage = () => {
                 {filteredUsers.length > 0 ? (
                     filteredUsers.map((user) => (
                         <div key={user.id} className="flex items-center justify-between bg-white border border-slate-300 rounded-lg shadow py-1 px-2">
-                            <UserCard user={user} onToggle={user.id} />
+                            <UserCard user={user} onNavigate={true} />
                             <div className="text-right">
                                 <span className="block text-xs text-black font-bold">Elo: {user.rating}</span>
                             </div>

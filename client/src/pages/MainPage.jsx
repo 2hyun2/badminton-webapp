@@ -44,7 +44,7 @@ export const MainPage = () => {
                         휴식중 <span className="text-sm text-blue-500 font-medium ml-2">{restingList.length}명</span>
                     </h4>
                     {restingList.map((user) => (
-                        <UserCard key={user.id} user={user} />
+                        <UserCard key={user.id} user={user} onNavigate={true}/>
                     ))}
                 </section>
                 {/* 대기열 */}
@@ -61,7 +61,7 @@ export const MainPage = () => {
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {players.map((user) => (
-                                        <UserCard key={user.id} user={user} />
+                                        <UserCard key={user.id} user={user} onNavigate={true}/>
                                     ))}
                                 </div>
                             </div>
@@ -77,14 +77,10 @@ export const MainPage = () => {
                         </span>
                     </h4>
                     {playingList.map(match => {
-                        // const players = userList
-                            // .filter(user => user.matchId === match)
-                            // .sort((a, b) => (a.matchSlot || 0) - (b.matchSlot || 0));
-
                         return (
                             <MatchCard
                                 key={match.matchId}
-                                matchId={match.matchId} // new Date() 대신 실제 matchId 전달 (중요!)
+                                matchId={match.matchId} // new Date() 대신 실제 matchId 전달
                                 players={match}
                                 onOpenModal={setEndingMatchId}
                             />
