@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useUsers } from '../hooks/useUsers';
-import { Button } from './common/Button'
+import { Button } from '../components/common/Button';
+import { Loading } from '../components/common/Loading';
 
-export const MyPage = () => {
+
+export const UserMyPage = () => {
     const { me, isLoading, updateUsers } = useUsers();
     const [formData, setFormData] = useState({
         name: '',
@@ -31,7 +33,7 @@ export const MyPage = () => {
         }
     }, [me]);
 
-    if (isLoading) return <div className="p-10 text-center">사용자 정보를 불러오는 중...</div>;
+    if (isLoading) return <Loading/>;
     if (!me) return <div className="p-10 text-center text-rose-500 font-bold">사용자 정보를 찾을 수 없습니다.</div>;
 
     const winRate = me.playCount > 0 ? ((me.wins / me.playCount) * 100).toFixed(1) : "0.0";

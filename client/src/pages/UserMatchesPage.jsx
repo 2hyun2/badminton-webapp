@@ -1,22 +1,25 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import { useMatches } from '../hooks/useMatches';
 import { useUsers } from '../hooks/useUsers';
-import { Button } from './common/Button';
-import { UserCard } from './card/UserCard';
-import { useNavigate } from 'react-router-dom';
+import { UserCard } from '../components/card/UserCard';
+import { Button } from '../components/common/Button';
+import { Loading } from '../components/common/Loading';
 
-export const MatchHistory = ({ viewMine = false }) => {
+export const UserMatchesPage = ({ viewMine = false }) => {
     const navigate = useNavigate();
     const { me, userList } = useUsers();
     const { matchHistory, isLoading: isMatchesLoading, isError } = useMatches();
     const [isMeOnly, setIsMeOnly] = useState(viewMine);
 
-    if (isMatchesLoading || !userList) return <div className="py-20 text-center text-slate-400">데이터를 불러오는 중...</div>
+    if (isMatchesLoading || !userList) return<Loading />
     if (isError) return <div className="py-20 text-center text-red-400">에러가 발생했습니다.</div>
 
+    // 내 데이터 판별
+    const isMyMatch = (match) => me?.id && (match.teamA.includes(me.id) || match.teamB.includes(me.id))
     // 필터가 활성화된 경우에만 필터링 수행, me.id가 없으면 빈 배열 반환
     const filteredData = isMeOnly 
-        ? matchHistory.filter(match => me?.id && (match.teamA.includes(me.id) || match.teamB.includes(me.id)))
+        ? matchHistory.filter(match => isMyMatch(match))
         : matchHistory;
 
     const formatDate = (dateString) => {
@@ -27,16 +30,13 @@ export const MatchHistory = ({ viewMine = false }) => {
     }
 
     return (
+
         <div className='space-y-4'>
+            <Loading/>
             <div className="space-y-4 border-b border-slate-700 pb-4">
-                <h1 className='pages-title'>MATCHES</h1>
+                <h1 className='pages-title'>경기 목록</h1>
                 <div className="text-right">
-                    <Button
-                        size='sm'
-                        variant={isMeOnly ? 'blue' : 'gray'}
-                        onClick={() => setIsMeOnly(!isMeOnly)}
-                        className=''
-                    >
+                    <Button size='sm' variant={isMeOnly ? 'blue' : 'gray'} onClick={() => setIsMeOnly(!isMeOnly)} >
                         {isMeOnly ? '모든 경기' : '내 경기만'}
                     </Button>
                 </div>
@@ -50,13 +50,13 @@ export const MatchHistory = ({ viewMine = false }) => {
                         const teamBUsers = userList.filter(user => match.teamB.includes(user.id));
 
                         return (
-                            <div key={match._id} className='relative text-white bg-slate-700  rounded-2xl overflow-hidden shadow-xl'>
+                            <div key={match._id} className={`relative text-white ${isMyMatch(match) ? 'bg-emerald-600' : 'bg-slate-700'} rounded-2xl overflow-hidden shadow-xl`}>
                                 {/* <div className={`absolute top-0 bottom-0 w-2 ${isTeamAWin ? 'left-0 bg-blue-500' : 'right-0 bg-rose-500'}`} /> */}
 
                                 <div className='flex items-center justify-between py-4 px-2'>
                                     <div className="flex-1 flex flex-col gap-2">
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-xs text-white p-1 rounded ${isTeamAWin ? 'bg-blue-500 text-blue-400' : 'bg-slate-800 text-slate-500'}`}>
+                                            <span className={`text-xs text-white p-1 rounded ${isTeamAWin ? 'bg-blue-500' : 'bg-slate-400'}`}>
                                                 TEAM A
                                                  {isTeamAWin && <span> WIN</span>}
                                             </span>
@@ -70,17 +70,17 @@ export const MatchHistory = ({ viewMine = false }) => {
                                     </div>
 
                                     {/* 경기 결과 정보 (중앙) */}
-                                    <div className='flex flex-col items-center justify-center px-4 min-w-[100px]'>
+                                    <div className='flex flex-col items-center justify-center px-4'>
                                         <div className="text-2xl select-none">VS</div>
                                         <div className="flex items-center gap-1 mt-1">
-                                            <span className="text-xs font-medium">Rating</span>
+                                            <span className="text-xs font-medium">Elo</span>
                                             <span className="text-sm font-bold">+{match.eloDelta}</span>
                                         </div>
                                     </div>
 
                                     <div className="flex-1 flex flex-col gap-2 items-end text-right">
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-xs text-white p-1 rounded ${!isTeamAWin ? 'bg-rose-500 text-rose-400' : 'bg-slate-800 text-slate-500'}`}>
+                                            <span className={`text-xs text-white p-1 rounded ${!isTeamAWin ? 'bg-rose-500' : 'bg-slate-400'}`}>
                                                 TEAM B
                                                  {!isTeamAWin && <span> WIN</span>}
                                             </span>

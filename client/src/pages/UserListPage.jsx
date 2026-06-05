@@ -3,6 +3,7 @@ import { useUsers } from '../hooks/useUsers';
 import { UserCard } from '../components/card/UserCard';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/common/Button';
+import { Loading } from '../components/common/Loading';
 
 export const UserListPage = () => {
     const { userList, isLoading } = useUsers();
@@ -22,7 +23,7 @@ export const UserListPage = () => {
         return filtered;
     }, [userList, searchTerm, chooseSort]);
 
-    if (isLoading) return <div className="p-10 text-center text-slate-400">회원 목록을 불러오는 중...</div>;
+    if (isLoading) return <Loading />;
 
     return (
         <div className="space-y-4">

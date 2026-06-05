@@ -12,9 +12,9 @@ import { MainPage } from './pages/MainPage'
 import { UserListPage } from './pages/UserListPage'
 import { UserRankingPage } from './pages/UserRankingPage'
 import { UserRecordPage } from './pages/UserRecordPage'
-
-import { MatchHistory } from './components/MatchHistory'
-import { MyPage } from './components/MyPage'
+import { UserMatchesPage } from './pages/UserMatchesPage'
+import { UserMyPage } from './pages/UserMyPage'
+import { Loading } from './components/common/Loading'
 // admin
 import { AdminIndex } from './pages/AdminIndex'
 import { AdminUsers } from './pages/AdminUsers'
@@ -33,10 +33,11 @@ const App = () => {
                 <Route path='/ranking' element={<UserRankingPage />} />
                 <Route path='/record' element={<UserRecordPage />} />
                 <Route path='/record/:id' element={<UserRecordPage />} />
-                <Route path='/history' element={<MatchHistory />} />
-                <Route path='/mypage' element={<MyPage />} />
+                <Route path='/history' element={<UserMatchesPage />} />
+                <Route path='/mypage' element={<UserMyPage />} />
+                <Route path='/loading' element={<Loading />} />
                 <Route element={<AdminLayout />}>
-                    {/* 어드민 내용들 */}
+                    {/* 어드민 전용 */}
                     <Route path='/admin/' element={<AdminIndex />} />
                     <Route path='/admin/users' element={<AdminUsers />} />
                     <Route path='/admin/matches' element={<AdminMatches />} />

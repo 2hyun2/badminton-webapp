@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { UserCard } from '../components/card/UserCard'
 import { useUsers } from '../hooks/useUsers'
 import { useMatches } from '../hooks/useMatches'
+import { Loading } from '../components/common/Loading'
 
 export const UserRankingPage = () => {
     const navigate = useNavigate();
@@ -77,8 +78,8 @@ export const UserRankingPage = () => {
         };
     }, [userList, matchHistory]);
 
-    if (isLoading) return <div className="p-10 text-center">로딩중</div>;
-    if (isError) return <div className="p-10 text-center text-red-500">데이터를 불러오지 못했습니다.</div>;
+    if (isLoading) return <Loading />;
+    if (isError) return <Loading type='error' message='데이터 오류입니다.' />;
 
     return (
         <div className="space-y-8">

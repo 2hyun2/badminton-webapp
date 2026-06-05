@@ -10,6 +10,7 @@ import { ProtectedFooter } from './ProtectedFooter';
 import useAuthStore from '../../store/useAuthStore';
 import { ModalWaitOption } from '../modal/ModalWaitOption';
 import { useMatches } from '../../hooks/useMatches';
+import { Loading } from '../common/Loading';
 
 
 export const ProtectedLayout = () => {
@@ -18,7 +19,7 @@ export const ProtectedLayout = () => {
     const { user } = useAuthStore(); // 로그인 세션 정보는 AuthStore에서 직접 가져옵니다.
     const { me, userList, updateUsers, waitingCategory } = useUsers();
     const { startMatchMutation } = useMatches();
-    
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -34,8 +35,6 @@ export const ProtectedLayout = () => {
             scrollRef.current.scrollTop = 0;
         }
     }, [location])
-
-    if (user && !me) return <div className="p-10 text-center">사용자 정보를 확인 중...</div>;
 
     const handleStartMatch = (selectedIds) => {
         startMatchMutation.mutate(selectedIds, {
@@ -85,22 +84,27 @@ export const ProtectedLayout = () => {
 
     return (
         <div className="layout Protected">
-            <div className={`flex justify-center min-h-screen bg-gray-100 h-screen`}>
-                <div className="relative max-w-md w-full bg-white shadow-lg flex flex-col min-h-screen">
+            <div className={`flex justify-center min-h-screen h-screen bg-slate-100`}>
+                <div className="relative flex flex-col h-full max-w-md w-full bg-white shadow-lg ">
                     <Header />
 
                     <main ref={scrollRef} className='default-layout relative [scrollbar-width:thin]'>
-                        {/* 뒤로가기 버튼 */}
-                        {location.pathname !== '/' && (
-                            <button
-                                onClick={() => navigate(-1)}
-                                className="sticky top-0 z-10 text-slate-500 bg-white/80 backdrop-blur-sm p-1 m-0 rounded-md shadow-sm cursor-pointer transition-all ease-0.3 hover:bg-blue-500 hover:text-white hover:shadow-[0]"
-                                aria-label="뒤로가기"
-                            >
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-                            </button>
-                        )}
-                        <Outlet />
+                        {(user && !me) 
+                            ? <Loading type='error' message='데이터를 불러오지 못했습니다.' />
+                            : <div className="flex-1">
+                                {/* 뒤로가기 버튼 */}
+                                {location.pathname !== '/' && (
+                                    <button
+                                        onClick={() => navigate(-1)}
+                                        className="sticky top-2 z-10 flex-shrink-0 text-slate-500 bg-white/80 backdrop-blur-sm p-1 m-0 rounded-md shadow-sm cursor-pointer transition-all ease-0.3 hover:bg-blue-500 hover:text-white hover:shadow-[0]"
+                                        aria-label="뒤로가기"
+                                    >
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                                    </button>
+                                )}
+                                <Outlet />
+                            </div>
+                        }
                     </main>
 
                     <ProtectedFooter

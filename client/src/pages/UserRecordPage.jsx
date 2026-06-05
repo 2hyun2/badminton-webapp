@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useUsers } from '../hooks/useUsers'
 import { useMatches } from '../hooks/useMatches'
 import { UserCard } from '../components/card/UserCard'
+import { Loading } from '../components/common/Loading'
 import { timeAgo } from '../utils/timeAgo'
 
 export const UserRecordPage = () => {
@@ -103,8 +104,8 @@ export const UserRecordPage = () => {
         return { winRate, topFrequent, bestPartner: bestPartnerEntry, nemesis: nemesisEntry };
     }, [displayedMatches, targetUser?.id, userList]);
 
-    if (isLoading || !targetUser) { return <div className="p-10 text-center text-slate-400">개인 기록 데이터를 불러오는 중...</div> }
-    if (allTargetMatches.length === 0) { return <div className="p-10 text-center text-slate-400">기록된 경기가 없습니다.</div> }
+    if (isLoading || !targetUser) return <Loading />
+    if (allTargetMatches.length === 0) return <Loading type='error' message='진행한 경기가 없거나, 에러가 발생했습니다.'/>
 
     return (
         <div className='space-y-4'>

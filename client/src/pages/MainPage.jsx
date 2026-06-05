@@ -6,9 +6,12 @@ import useAuthStore from "../store/useAuthStore";
 import { UserCard } from "../components/card/UserCard";
 import { MatchCard } from "../components/card/MatchCard";
 import { ModalMatchResult } from '../components/modal/ModalMatchResult';
+import { Loading } from "../components/common/Loading";
 
 import { useUsers } from "../hooks/useUsers";
 import { useMatches } from "../hooks/useMatches";
+
+
 
 export const MainPage = () => {
     const navigate = useNavigate();
@@ -34,6 +37,9 @@ export const MainPage = () => {
         };
         endMatchMutation.mutate(payload);
     };
+
+    if (isLoading) return <Loading />
+    if (isError) return <Loading type='error' message='데이터 오류입니다.' />
     
     return (
         <>
