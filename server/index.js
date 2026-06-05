@@ -9,6 +9,7 @@ const http = require('http');
 const { Server: SocketIOServer } = require("socket.io"); // 이름을 SocketIOServer로 통일
 const bcrypt = require('bcrypt'); // 비밀번호 암호화 도구
 const cron = require('node-cron'); // 스케줄러 추가
+const rateLimit = require('express-rate-limit'); // 요청 제한 라이브러리
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -37,6 +38,13 @@ mongoose.connect(process.env.MONGO_URI)
 
 // process.env.TZ = "Asia/Seoul" 서버 시간 설정 완료 newDate = 한국 시간
 const getKSTNow = () => new Date();
+
+const registerLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { message: '1개의 아이피당 1시간에 5번 가입요청이 가능합니다. 개인 데이터를 사용해주세요.' },
+    standardHeaders: true,
+})
 
 
 // required: true => 필수 값
@@ -151,7 +159,7 @@ app.post('/api/users/check-id', async (req, res) => {
     }
 });
 // 회원가입
-app.post('/api/users/register', async (req, res) => {
+app.post('/api/users/register', registerLimiter, async (req, res) => {
     try {
         const { username, password, birthday, name, gender } = req.body;
         if (!username || !password || !birthday || !name || !gender) return res.status(400).json({ message: '모든 필드를 입력해 주세요.' }); // 빈 값 존재시 error
