@@ -1,6 +1,6 @@
 @reference "tailwindcss";
 @layer components {
   .modal-overlay { @apply fixed inset-0 bg-black/75 flex items-center justify-center z-50 px-2 }
-  .modal-container { @apply space-y-6 max-w-md w-full max-h-full text-center bg-white rounded-xl shadow-xl py-4 px-2 overflow-y-auto }
+  .modal-container { @apply space-y-6 max-w-md w-full max-h-[calc(100vh-2rem)] text-center bg-white rounded-xl shadow-xl py-4 px-2 overflow-y-auto [scrollbar-width:thin] }
   .modal-title { @apply text-xl font-extrabold text-slate-800; }
 }

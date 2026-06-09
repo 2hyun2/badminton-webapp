@@ -167,13 +167,13 @@ export const Header = () => {
                 <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="w-full max-w-sm bg-white border border-white rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100">
 
-                        <div className={`p-4 text-white text-center ${matchSocket.type === 'START' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-emerald-500 to-teal-600'}`}>
+                        <div className={`py-4 px-2 text-white text-center ${matchSocket.type === 'START' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-blue-500 to-blue-900'}`}>
                             <h2 className="text-2xl font-black tracking-wide">
                                 {matchSocket.type === 'START' ? 'MATCH START!' : 'MATCH END'}
                             </h2>
                         </div>
 
-                        <div className="p-4 text-center">
+                        <div className="py-4 px-2 text-center">
                             {matchSocket.type === 'START' ? (
                                 <div className="space-y-4">
                                     <p className="text-lg text-slate-800 font-bold">새로운 경기가 배정되었습니다!</p>
@@ -197,7 +197,7 @@ export const Header = () => {
                             ) : (
                                 <div className="space-y-4">
                                     <p className="text-lg text-slate-800 font-bold">경기가 종료되었습니다.</p>
-                                    <div className="relative flex justify-between border border-slate-300 rounded shadow p-2">
+                                    <div className="relative flex gap-2 justify-between border border-slate-300 rounded shadow p-2">
                                         {/* TEAM A */}
                                         <div className={`relative space-y-2 w-full border rounded shadow p-2`}>
                                             <div className="flex items-center justify-center gap- text-lg text-red-500 font-bold text-center">
@@ -219,22 +219,18 @@ export const Header = () => {
                                     </div>
                                     {/* rating 변화 */}
                                     {matchSocket.eloDelta &&
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center justify-center text-white font-bold text-center bg-black py-1 px-2 rounded shadow">
-                                            <span className="text-xl">± {matchSocket.eloDelta}</span>
+                                        <div className="relative flex flex-col items-center justify-center text-white font-bold text-center bg-blue-500 py-1 px-2 rounded shadow">
+                                            <span className="text-base">Elo 변화 ±{matchSocket.eloDelta}</span>
                                         </div>
                                     }
-
-                                    {/* <p className="text-xs text-indigo-600 font-medium bg-indigo-50 py-1 px-2 rounded inline-block"> */}
-                                    {/* 레이팅 점수가 대시보드에 실시간 반영되었습니다. */}
-                                    {/* </p> */}
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-4 border-t border-slate-100 flex gap-2">
+                        <div className="p-2 border-t border-slate-100 flex gap-2">
                             <button
                                 onClick={() => setMatchSocket(null)}
-                                className={`w-full py-4 rounded-xl text-white font-bold shadow-md cursor-pointer ${matchSocket.type === 'START' ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-teal-600 hover:bg-teal-700 shadow-teal-200'}`}
+                                className={`w-full py-2 text-white font-bold rounded-lg shadow-md cursor-pointer ${matchSocket.type === 'START' ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'}`}
                             >
                                 {matchSocket.type === 'START' ? '경기장 입장하기' : '확인'}
                             </button>

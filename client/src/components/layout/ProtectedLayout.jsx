@@ -88,10 +88,10 @@ export const ProtectedLayout = () => {
                 <div className="relative flex flex-col h-full max-w-md w-full bg-white shadow-lg ">
                     <Header />
 
-                    <main ref={scrollRef} className='default-layout relative [scrollbar-width:thin]'>
+                    <main ref={scrollRef} className='default-layout relative flex-1 [scrollbar-width:thin]'>
                         {(user && !me) 
                             ? <Loading type='error' message='데이터를 불러오지 못했습니다.' />
-                            : <div className="flex-1">
+                            : <div className="">
                                 {/* 뒤로가기 버튼 */}
                                 {location.pathname !== '/' && (
                                     <button

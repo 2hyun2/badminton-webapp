@@ -9,7 +9,7 @@ export const MatchCard = ({ matchId, players, onOpenModal }) => {
     const navigate = useNavigate();
     const { me } = useUsers();
 
-    const isAdmin = me?.role === 'admin';
+    const isAdmin = me?.role === 'ADMIN';
 
     const teamAPlayers = players.teamA;
     const teamBPlayers = players.teamB;
