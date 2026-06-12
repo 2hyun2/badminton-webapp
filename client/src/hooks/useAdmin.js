@@ -73,6 +73,7 @@ export const useAdmin = () => {
 
     const deleteUserMutation = useMutation({
         mutationFn: async (userId) => {
+            if (authUser?.id === userId) throw new Error('관리자 계정은 삭제가 불가능합니다.');
             const response = await api.delete(`/admin/users/${userId}`);
             return response.data;
         },
