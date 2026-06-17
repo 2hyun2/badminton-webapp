@@ -29,7 +29,7 @@ export const useMatches = (filterConfig = { type: 'period', value: 'total' }) =>
             return response.data;
         },
         onSuccess: () => {
-            alert("매칭 정보가 등록되었습니다.");
+            // alert("매칭 정보가 등록되었습니다.");
             
             queryClient.invalidateQueries({ queryKey: ['users'] });
             queryClient.invalidateQueries({ queryKey: ['matchHistory'] });

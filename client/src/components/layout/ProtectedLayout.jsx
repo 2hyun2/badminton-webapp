@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
-import api from '../../hooks/api';
-
 import { ModalMatchCreate } from '../modal/ModalMatchCreate';
 import { useUsers } from '../../hooks/useUsers';
 import { Header } from './Header';
@@ -17,7 +15,7 @@ export const ProtectedLayout = () => {
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false); // 매칭 팝업 boolean
     const [waitTargetId, setWaitTargetId] = useState(null); // 모달 제어용 ID (기본값 null)
     const { user } = useAuthStore(); // 로그인 세션 정보는 AuthStore에서 직접 가져옵니다.
-    const { me, userList, updateUsers, waitingCategory } = useUsers();
+    const { me, userList, waitingList, updateUserMutation } = useUsers();
     const { startMatchMutation } = useMatches();
 
     const navigate = useNavigate();
@@ -54,7 +52,7 @@ export const ProtectedLayout = () => {
         }
 
         try {
-            await updateUsers.mutateAsync(updates);
+            await updateUserMutation.mutateAsync(updates);
         } catch (error) {
             console.error("상태 업데이트 실패:", error);
             alert("상태를 변경하는 중 오류가 발생했습니다.");
@@ -73,7 +71,7 @@ export const ProtectedLayout = () => {
                 updates.push(...partners.map(user => ({ id: user.id, status: "RESTING", groupId: null })));
             }
             try {
-                await updateUsers.mutateAsync(updates);
+                await updateUserMutation.mutateAsync(updates);
             } catch (error) {
                 console.error("휴식 전환 실패:", error);
             }
@@ -118,7 +116,7 @@ export const ProtectedLayout = () => {
                         <ModalMatchCreate
                             me={me}
                             userList={userList}
-                            waitingCategory={waitingCategory}
+                            waitingList={waitingList}
                             onClose={() => setIsMatchModalOpen(false)}
                             onMatchStart={handleStartMatch}
                         />

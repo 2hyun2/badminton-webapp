@@ -1,9 +1,9 @@
-export const timeAgo = (entryTime) => {
+export const timeAgo = (entryTime: Date): string => {
     if (!entryTime) return "기록 없음";
 
     const now = new Date();
     const userLastEntry = new Date(entryTime);
-    const timeDiff = now - userLastEntry;
+    const timeDiff = now.getTime() - userLastEntry.getTime();
 
     const min = 60 * 1000;
     const hour = 60 * min;
@@ -15,5 +15,5 @@ export const timeAgo = (entryTime) => {
     if (timeDiff < day) return `${Math.floor(timeDiff / hour)}시간 전`;
     if (timeDiff < month) return `${Math.floor(timeDiff / day)}일 전`;
 
-    return entryTime.slice(0, 10);
-}
+    return userLastEntry.toISOString().slice(0, 10);
+};

@@ -1,9 +1,6 @@
-import { Document } from "mongoose";
-import 'express'
 
-// Mongoose Document 타입을 상속받는 인터페이스 정의
   // User 모델의 데이터 타입
-export interface InterfaceUser extends Document {
+export interface InterfaceUser {
     id: number;
     username: string;
     password?: string; // select: false 인 필드는 조회 불가능 선택적 
@@ -13,7 +10,7 @@ export interface InterfaceUser extends Document {
     tier: string | null;
     rating: number;
     status: string;
-    matchId: number | null;
+    matchId?: number | null;
     isPresent: boolean;
     entryTime: Date | null;
     exitTime: Date | null;
@@ -32,12 +29,10 @@ export interface InterfaceUser extends Document {
     isGenderPublic: boolean;
 }
   // Match 모델의 데이터 타입
-export interface InterfaceMatch extends Document {
+export interface InterfaceMatch {
     matchId: number;
     matchDate: Date;
-    matchType: string;
-    matchMode: string;
-    matchStatus: 'PLAYING' | 'FINISHED' | 'VOID';
+    matchType?: string;
     teamA: number[];
     teamB: number[];
     scoreA: number;
@@ -46,7 +41,7 @@ export interface InterfaceMatch extends Document {
     eloDelta?: number;
 }
   // DailyRecord 모델의 데이터 타입
-export interface InterfaceDailyRecord extends Document {
+export interface InterfaceDailyRecord {
     date: string;
     userId: number;
     entryTime?: Date;
@@ -56,7 +51,7 @@ export interface InterfaceDailyRecord extends Document {
     matches?: any[]; // matches 구조가 구체적이지 않다면 일단 any[] 로 지정
 }
   // Counter 모델의 데이터 타입
-export interface InterfaceCounter extends Document {
+export interface InterfaceCounter {
     name: string;
     seq: number;
 }

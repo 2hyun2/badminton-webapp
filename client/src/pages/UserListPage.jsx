@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { UserCard } from '../components/card/UserCard';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 
@@ -9,7 +8,6 @@ export const UserListPage = () => {
     const { userList, isLoading } = useUsers();
     const [searchTerm, setSearchTerm] = useState('');
     const [chooseSort, setChooseSort] = useState('rating');
-    const navigate = useNavigate();
 
     const filteredUsers = useMemo(() => {
         if (!userList) return [];

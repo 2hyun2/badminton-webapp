@@ -1,10 +1,8 @@
-import React from 'react'
 import { useLocation } from 'react-router-dom';
 
 import useAuthStore from '../../store/useAuthStore'
 
 import { useUsers } from '../../hooks/useUsers';
-import { useSocket } from '../../hooks/useSocket';
 
 export const ProtectedFooter = ({ onMatchCreate, onStatusToggle }) => {
     const location = useLocation();
