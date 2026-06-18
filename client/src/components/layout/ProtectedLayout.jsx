@@ -7,8 +7,8 @@ import { Header } from './Header';
 import { ProtectedFooter } from './ProtectedFooter';
 import useAuthStore from '../../store/useAuthStore';
 import { ModalWaitOption } from '../modal/ModalWaitOption';
-import { useMatches } from '../../hooks/useMatches';
 import { Loading } from '../common/Loading';
+import { useMatches } from '../../hooks/useMatches';
 
 
 export const ProtectedLayout = () => {
@@ -34,28 +34,21 @@ export const ProtectedLayout = () => {
         }
     }, [location])
 
-    const handleStartMatch = (selectedIds) => {
-        startMatchMutation.mutate(selectedIds, {
+    const handleStartMatch = ({ matchPlayer, matchType, matchMode }) => {
+        startMatchMutation.mutate({ matchPlayer, matchType, matchMode }, {
             onSuccess: () => setIsMatchModalOpen(false)
         });
     }
 
-    const handleWaitConfirm = async (selectedPref, selectedPartnerId) => {
+    const handleWaitConfirm = async (selectedPref) => {
         if (!me) return;
 
         let updates = [{ id: me.id, status: "WAITING", preferredMatch: selectedPref }];
-
-        if (selectedPartnerId) {
-            const groupId = Date.now().toString();
-            updates[0].groupId = groupId; // 본인에게도 groupId 부여
-            updates.push({ id: selectedPartnerId, status: "WAITING", preferredMatch: selectedPref, groupId: groupId });
-        }
 
         try {
             await updateUserMutation.mutateAsync(updates);
         } catch (error) {
             console.error("상태 업데이트 실패:", error);
-            alert("상태를 변경하는 중 오류가 발생했습니다.");
         }
         setWaitTargetId(null);
     };
@@ -64,12 +57,7 @@ export const ProtectedLayout = () => {
         if (!me) return;
 
         if (me.status === "WAITING") {
-            const updates = [{ id: me.id, status: "RESTING", groupId: null }];
-            // groupId가 있는 경우, 같은 그룹원(파트너)도 함께 휴식중으로 변경
-            if (me.groupId) {
-                const partners = userList.filter(user => user.groupId === me.groupId && user.id !== me.id);
-                updates.push(...partners.map(user => ({ id: user.id, status: "RESTING", groupId: null })));
-            }
+            const updates = [{ id: me.id, status: "RESTING"}];
             try {
                 await updateUserMutation.mutateAsync(updates);
             } catch (error) {
@@ -114,8 +102,6 @@ export const ProtectedLayout = () => {
 
                     {isMatchModalOpen && (
                         <ModalMatchCreate
-                            me={me}
-                            userList={userList}
                             waitingList={waitingList}
                             onClose={() => setIsMatchModalOpen(false)}
                             onMatchStart={handleStartMatch}

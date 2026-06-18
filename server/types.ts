@@ -33,17 +33,17 @@ export interface InterfaceUser extends Document {
 }
   // Match 모델의 데이터 타입
 export interface InterfaceMatch extends Document {
-    matchId: number;
-    matchDate: Date;
-    matchType: string;
-    matchMode: string;
-    matchStatus: 'PLAYING' | 'FINISHED' | 'VOID';
+    matchId: number; // 경기 Key
+    matchDate: Date; // 경기 날짜
+    matchType: string; // 1대1, 2대2
+    matchMode: string; // 랭크, 친선
+    matchStatus: 'PLAYING' | 'FINISHED' | 'VOID'; // 경기 기록 상태
     teamA: number[];
     teamB: number[];
     scoreA: number;
     scoreB: number;
-    winner?: string;
-    eloDelta?: number;
+    winner?: string; // A, B, VOID, FRIENDLY
+    eloDelta?: number; 
 }
   // DailyRecord 모델의 데이터 타입
 export interface InterfaceDailyRecord extends Document {

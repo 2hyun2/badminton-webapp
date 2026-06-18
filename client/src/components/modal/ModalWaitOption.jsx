@@ -33,27 +33,9 @@ export const ModalWaitOption = ({ userList, waitTargetId, onClose, onConfirm }) 
                     ))}
                 </div>
 
-                <div className="">
-                    <select
-                        value={selectedPartnerId}
-                        onChange={(e) => setSelectedPartnerId(e.target.value)}
-                        className="w-full input-default"
-                    >
-                        <option value="">파트너 없음 (개인 신청)</option>
-                        {userList
-                            .filter(u => u.status === "RESTING" && u.id !== waitTargetId)
-                            .map(partner => (
-                                <option key={partner.id} value={partner.id}>
-                                    {partner.name} ({partner.rating})
-                                </option>
-                            ))
-                        }
-                    </select>
-                </div>
-
                 <div className="flex gap-2">
-                    <Button onClick={onClose} size='flex' variant="gray" className="flex-1">취소</Button>
-                    <Button onClick={handleConfirm} size='flex' variant="blue" className="flex-1">등록</Button>
+                    <Button onClick={onClose} size='md' variant="gray" className="flex-1">취소</Button>
+                    <Button onClick={handleConfirm} size='md' variant="blue" className="flex-1">등록</Button>
                 </div>
             </div>
         </div>

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { useMatches } from '../hooks/useMatches';
+
 import { useUsers } from '../hooks/useUsers';
+import { useMatches } from '../hooks/useMatches';
+
 import { UserCard } from '../components/card/UserCard';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';

@@ -11,16 +11,12 @@ import { Loading } from "../components/common/Loading";
 import { useUsers } from "../hooks/useUsers";
 import { useMatches } from "../hooks/useMatches";
 
-
-
 export const MainPage = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
     const { isLoading, isError, restingList, waitingList, playingList, updateUserMutation } = useUsers();
-    const { endMatchMutation, endingMatchId, setEndingMatchId } = useMatches();
-
-    console.log(waitingList);
+    const { matchHistory, endMatchMutation, endingMatchId, setEndingMatchId } = useMatches();
 
     // 로그인 보호 로직
     useEffect(() => {
@@ -29,10 +25,10 @@ export const MainPage = () => {
         }
     }, [user, navigate]);
 
-    const handleMatchResult = (winnerTeam) => {
+    const handleMatchResult = (result) => {
         const payload = {
             matchId: endingMatchId,
-            winnerTeam: winnerTeam,
+            winner: result,
             scoreA: 0,
             scoreB: 0
         };
@@ -41,7 +37,6 @@ export const MainPage = () => {
 
     if (isLoading) return <Loading />
     if (isError) return <Loading type='error' message='데이터 오류입니다.' />
-
 
     return (
         <>
@@ -52,7 +47,7 @@ export const MainPage = () => {
                         휴식중 <span className="text-sm text-blue-500 font-medium">{restingList.length}명</span>
                     </h4>
                     {restingList.map((user) => (
-                        <UserCard key={user.id} user={user} onNavigate={true}/>
+                        <UserCard key={user.id} user={user} onNavigate={true} />
                     ))}
                 </section>
                 {/* 대기열 */}
@@ -69,7 +64,7 @@ export const MainPage = () => {
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {players.map((user) => (
-                                        <UserCard key={user.id} user={user} onNavigate={true}/>
+                                        <UserCard key={user.id} user={user} onNavigate={true} />
                                     ))}
                                 </div>
                             </div>
@@ -81,16 +76,17 @@ export const MainPage = () => {
                     <h4 className="w-full text-lg font-semibold text-slate-800 border-b border-slate-600 pb-1 mb-2">
                         경기 진행중 <span className="text-sm text-blue-500 font-medium">{playingList.length}명</span>
                     </h4>
-                    {/* {playingList.map(match => {
-                        return (
-                            <MatchCard
-                                key={match.matchId}
-                                matchId={match.matchId}
-                                players={match}
-                                onOpenModal={setEndingMatchId}
-                            />
-                        );
-                    })} */}
+                    {matchHistory
+                        .filter(match => match.matchStatus === 'PLAYING')
+                        .map(match => {
+                            return (
+                                <MatchCard
+                                    key={match.matchId}
+                                    match={match}
+                                    onOpenModal={setEndingMatchId}
+                                />
+                            );
+                        })}
                 </section>
             </div>
             {/* 경기 결과 팝업 */}

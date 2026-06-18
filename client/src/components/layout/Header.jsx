@@ -164,33 +164,38 @@ export const Header = () => {
 
             {/* 경기 매칭 시작 / 종료 전체 화면 팝업 모달 */}
             {matchSocket && (
-                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="w-full max-w-sm bg-white border border-white rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100">
+                <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-2 backdrop-blur-sm">
+                    <div className="w-full max-w-sm bg-white border border-white rounded-2xl shadow-2xl overflow-hidden">
 
-                        <div className={`py-4 px-2 text-white text-center ${matchSocket.type === 'START' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-blue-500 to-blue-900'}`}>
-                            <h2 className="text-2xl font-black tracking-wide">
-                                {matchSocket.type === 'START' ? 'MATCH START!' : 'MATCH END'}
-                            </h2>
+                        <div className={`text-white text-center p-2 ${matchSocket.type === 'START' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-blue-500 to-blue-900'}`}>
+                            <h2 className="text-2xl font-black tracking-wide">{matchSocket.type === 'START' ? '경기 시작!' : '경기 종료!'}</h2>
+                            <span className="text-base">{matchSocket.matchType === 'SINGLE' ? '1대1' : '2대2'} - {matchSocket.matchMode === 'RANKED' ? '랭크전' : '친선전'}</span>
                         </div>
 
                         <div className="py-4 px-2 text-center">
                             {matchSocket.type === 'START' ? (
                                 <div className="space-y-4">
-                                    <p className="text-lg text-slate-800 font-bold">새로운 경기가 배정되었습니다!</p>
-                                    <p className="text-base text-slate-600 font-bold">코트로 이동하여 경기를 준비해 주세요.</p>
+                                    <div className="">
+                                        <p className="text-lg text-slate-800 font-bold">새로운 경기가 배정되었습니다!</p>
+                                        <p className="text-base text-slate-600 font-bold">코트로 이동하여 경기를 준비해 주세요.</p>
+                                    </div>
 
                                     <div className="flex justify-between border border-slate-300 rounded shadow p-2">
                                         {/* TEAM A */}
                                         <div className="space-y-2 w-full border border-slate-100 rounded shadow p-2">
                                             <h4 className="title text-lg text-red-500 font-bold ">TEAM A</h4>
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamA[0])} />
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamA[1])} />
+                                            {matchSocket.teamA
+                                                .filter(user => user)
+                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
+                                            }
                                         </div>
                                         {/* TEAM B */}
                                         <div className="space-y-2 w-full border border-slate-100 rounded shadow p-2">
                                             <h4 className="title text-lg text-blue-500 font-bold ">TEAM B</h4>
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamB[0])} />
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamB[1])} />
+                                            {matchSocket.teamB
+                                                .filter(user => user)
+                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -202,19 +207,23 @@ export const Header = () => {
                                         <div className={`relative space-y-2 w-full border rounded shadow p-2`}>
                                             <div className="flex items-center justify-center gap- text-lg text-red-500 font-bold text-center">
                                                 <h4 className="">TEAM A</h4>
-                                                {matchSocket.winner === 'A' && <span className="">WIN</span>}
+                                                {matchSocket.winner === 'A' && <span className=""> WIN</span>}
                                             </div>
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamA[0])} />
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamA[1])} />
+                                            {matchSocket.teamA
+                                                .filter(user => user)
+                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
+                                            }
                                         </div>
                                         {/* TEAM B */}
                                         <div className={`relative space-y-2 w-full border rounded shadow p-2`}>
                                             <div className="flex items-center justify-center gap-1 text-lg text-blue-500 font-bold text-center">
                                                 <h4 className="">TEAM B</h4>
-                                                {matchSocket.winner === 'B' && <span className="">WIN</span>}
+                                                {matchSocket.winner === 'B' && <span className=""> WIN</span>}
                                             </div>
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamB[0])} />
-                                            <UserCard user={userList.find(u => u.id === matchSocket.teamB[1])} />
+                                            {matchSocket.teamB
+                                                .filter(user => user)
+                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
+                                            }
                                         </div>
                                     </div>
                                     {/* rating 변화 */}

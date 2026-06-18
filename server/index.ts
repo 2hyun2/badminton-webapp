@@ -459,48 +459,57 @@ app.post('/api/users/update', userAuth, async (req: Request, res: Response): Pro
 
 // 경기 시작 
 app.post("/api/match/start", async (req: Request, res: Response): Promise<any> => {
-    // 프론트에서 오는 selectedIds가 숫자 배열(number[])임을 명시
-    const { selectedIds, matchType, mode }: { selectedIds: number[], matchType: 'SINGLE' | 'DOUBLE', mode: 'RANKED' | 'FRIENDLY' } = req.body;
+    // 프론트에서 오는 matchPlayer가 숫자 배열(number[])임을 명시
+    const { matchPlayer, matchType, matchMode }: 
+        { matchPlayer: (number | null)[], matchType: 'SINGLE' | 'DOUBLE', matchMode: 'RANKED' | 'FRIENDLY' } 
+        = req.body;
+    
+    if (!matchPlayer || !Array.isArray(matchPlayer) || matchPlayer.length === 0) {
+        return res.status(400).json({ message: "선택된 플레이어가 없습니다." });
+    }
+
     const newMatchId = await counterSequence('matchId');
 
-    if (!selectedIds || selectedIds.length !== 4) { return res.status(400).json({ message: "인원이 충분하지 않습니다." }) }
+    // if (!matchPlayer || matchPlayer.length !== 4) { return res.status(400).json({ message: "인원이 충분하지 않습니다." }) }
     if (!matchType) { return res.status(400).json({ message: '매치 타입이 정해지지 않았습니다.' }) }
-    if (!mode) { return res.status(400).json({ message: '매치 모드가 정해지지 않았습니다..' }) }
+    if (!matchMode) { return res.status(400).json({ message: '매치 모드가 정해지지 않았습니다..' }) }
 
     try {
-        const bulkOps = selectedIds.map((id, index) => ({
-            updateOne: {
-                filter: { id },
-                update: { $set: { status: "PLAYING", matchId: newMatchId, matchSlot: index, groupId: null, updatedAt: getKSTNow() } }
-            }
-        }));
+        const bulkOps = matchPlayer
+            .filter(id => id !== null) // ID가 null인 경우 제외 (방어 로직)
+            .map((id, index) => ({
+                updateOne: {
+                    filter: { id },
+                    update: { $set: { status: "PLAYING", matchId: newMatchId, matchSlot: index, groupId: null, updatedAt: getKSTNow() } }
+                }
+            }));
 
         await User.bulkWrite(bulkOps);
 
-        selectedIds.forEach(id => {
+        matchPlayer.forEach(id => {
             io.to(`user_${id}`).emit('match:update', {
+                userId: id,
                 type: 'START',
                 matchId: newMatchId,
-                userId: id,
                 matchType: matchType,
-                mode: mode,
-                teamA: selectedIds.slice(0, 2),
-                teamB: selectedIds.slice(2, 4)
+                matchMode: matchMode,
+                teamA: matchPlayer.slice(0, 2),
+                teamB: matchPlayer.slice(2, 4)
             });
         })
 
-        Match.create({
+        await Match.create({
             matchId: newMatchId,
             matchDate: getKSTNow(),
             matchType: matchType || 'DOUBLE', // SINGLE or DOUBLE
-            matchMode: mode || 'RANKED', // RANKED or FRIENDLY (기본값 RANKED)
+            matchMode: matchMode || 'RANKED', // RANKED or FRIENDLY (기본값 RANKED)
             matchStatus: 'PLAYING',
-            teamA: selectedIds.slice(0, 2),
-            teamB: selectedIds.slice(2, 4),
+            teamA: matchPlayer.slice(0, 2).filter(id => id !== null),
+            teamB: matchPlayer.slice(2, 4).filter(id => id !== null),
         })
 
         io.emit('users:update', { type: 'UPDATE' });
-        io.emit('matches:create', { type: 'CREATE' });
+        io.emit('matches:update', { type: 'UPDATE' });
 
         res.status(200).json({ message: "매칭 성공" });
     } catch (error) {
@@ -525,9 +534,17 @@ app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => 
         const matchedUser = await User.find({ id: { $in: [...teamAPlayer, ...teamBPlayer] } });
 
         // VOID 처리: 경기 무효 (아무것도 기록 안 함)
-        if (winner === 'VOID') {
-            await User.updateMany({ matchedUser }, { $set: { status: "RESTING", matchId: null, matchSlot: null } });
-            await Match.deleteOne({ thisMatch });
+        if (winner === 'VOID' || winner === 'cancel') {
+            await User.updateMany({ id: { $in: [...teamAPlayer, ...teamBPlayer] } }, { $set: { status: "RESTING", matchId: null, matchSlot: null, updatedAt: getKSTNow() } });
+            
+            await Match.deleteOne({ matchId: matchId });
+
+            // WebSocket 이벤트 발생: 유저 상태 및 매치 목록 업데이트
+            io.emit('users:update', { type: 'UPDATE' });
+            io.emit('matches:update', { type: 'UPDATE' });
+            [...teamAPlayer, ...teamBPlayer].forEach(id => {
+                io.to(`user_${id}`).emit('match:update', { type: 'VOID', matchId: matchId });
+            });
             return res.status(200).json({ message: "무효 처리 완료" });
         }
 
@@ -565,7 +582,25 @@ app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => 
         await User.bulkWrite(bulkOps);
 
         // 4. 경기 완료 상태 저장
-        await Match.updateOne({ matchId }, { $set: { status: 'FINISHED', winner: winner, eloDelta: Math.abs(ratingChange) } });
+        await Match.updateOne({ matchId }, { $set: { matchStatus: 'FINISHED', winner: winner, eloDelta: Math.abs(ratingChange) } });
+
+        // WebSocket 이벤트 발생: 유저 상태 및 매치 목록 업데이트
+        io.emit('users:update', { type: 'UPDATE' });
+        io.emit('matches:update', { type: 'UPDATE' });
+        [...teamAPlayer, ...teamBPlayer].forEach(id => {
+            io.to(`user_${id}`).emit('match:update', { 
+                type: 'END', 
+                matchId: matchId, 
+                matchType: thisMatch.matchType,
+                matchMode: thisMatch.matchMode,
+                matchStatus: thisMatch.matchStatus,
+                winner: winner,
+                teamA: teamAPlayer,
+                teamB: teamBPlayer,
+                eloDelta: Math.abs(ratingChange)
+            });
+        });
+
 
         res.status(200).json({ message: "정상 반영 완료" });
     } catch (err) {
@@ -675,22 +710,20 @@ app.get('/api/admin/users', adminOnly, async (req: Request, res: Response): Prom
 });
 
 // 관리자 전용 비밀번호 초기화 API (URL에 타겟 유저 번호를 달고 요청합니다)
-app.post('/api/admin/users/:userId/reset-password', adminOnly, async (req: Request, res: Response): Promise<any> => {
+app.post('/api/admin/users/:id/reset-password', adminOnly, async (req: Request, res: Response): Promise<any> => {
     try {
-        const paramUserId = req.params.userId;
-        const userId = parseInt(Array.isArray(paramUserId) ? paramUserId[0] : paramUserId, 10);
+        const userId = parseInt(req.params.id as string, 10); // 10진수로 숫자형 변환, url 은 숫자로 들어옴 as string
 
-        if (isNaN(userId)) {
-            return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' });
-        }
+        if (isNaN(userId)) { return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' }) }
 
         const hashedPassword = await bcrypt.hash("0000", 10);
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { $set: { password: hashedPassword, updatedAt: getKSTNow() } },
+            { $set: { password: hashedPassword } },
             { returnDocument: 'after' }
         );
-        if (!updatedUser) return res.status(404).json({ message: '유저 없음' });
+        if (!updatedUser) return res.status(404).json({ message: 'DB에 해당 유저가 존재하지 않습니다.' });
+
         res.status(200).json({ success: true, message: '비밀번호가 0000으로 초기화되었습니다.', user: updatedUser.toObject() });
     } catch (error) {
         res.status(500).json({ message: '초기화 실패' });
@@ -700,19 +733,16 @@ app.post('/api/admin/users/:userId/reset-password', adminOnly, async (req: Reque
 // 유저 상태 강제 초기화 (경기 중 -> 휴식 중으로 복구)
 app.post('/api/admin/users/:userId/reset-status', adminOnly, async (req: Request, res: Response): Promise<any> => {
     try {
-        const paramUserId = req.params.userId;
-        const userId = parseInt(Array.isArray(paramUserId) ? paramUserId[0] : paramUserId, 10);
+        const userId = parseInt(req.params.userId as string, 10);
 
-        if (isNaN(userId)) {
-            return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' });
-        }
+        if (isNaN(userId)) { return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' }) }
 
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { $set: { status: "RESTING", matchId: null, matchSlot: null, updatedAt: getKSTNow() } },
+            { $set: { status: "RESTING", matchId: null, matchSlot: null} },
             { returnDocument: 'after' }
         );
-        if (!updatedUser) return res.status(404).json({ message: '유저 없음' });
+        if (!updatedUser) return res.status(404).json({ message: 'DB에 해당 유저가 존재하지 않습니다.' });
 
         io.emit('users:update', { type: 'UPDATE', userId: updatedUser.id, status: updatedUser.status });
 
@@ -723,18 +753,14 @@ app.post('/api/admin/users/:userId/reset-status', adminOnly, async (req: Request
 });
 
 // 관리자 전용 유저 삭제(강퇴) API
-app.delete('/api/admin/users/:userId', adminOnly, async (req: Request, res: Response): Promise<any> => {
+app.delete('/api/admin/users/:userId/delete-account', adminOnly, async (req: Request, res: Response): Promise<any> => {
     try {
-        const paramUserId = req.params.userId;
-        const userId = parseInt(Array.isArray(paramUserId) ? paramUserId[0] : paramUserId, 10);
+        const userId = parseInt(req.params.userId as string, 10);
 
-        if (isNaN(userId)) {
-            return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' });
-        }
+        if (isNaN(userId)) { return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' }) }
 
         const deletedUser = await User.findOneAndDelete({ id: userId });
-
-        if (!deletedUser) return res.status(404).json({ message: '유저 없음' });
+        if (!deletedUser) return res.status(404).json({ message: 'DB에 해당 유저가 존재하지 않습니다.' });
 
         io.emit('users:update', { type: 'EXIT', userId: deletedUser.id });
 
@@ -779,20 +805,14 @@ app.post('/api/admin/users/:userId/update-role', adminOnly, async (req: Request,
 });
 
 // 관리자 전용 특정 경기 기록 삭제(무효화) API
-app.delete('/api/admin/matches/:matchId', adminOnly, async (req: Request, res: Response): Promise<any> => {
+app.delete('/api/admin/matches/:matchId/delete-match', adminOnly, async (req: Request, res: Response): Promise<any> => {
     try {
-        const paramMatchId = req.params.matchId;
-        const matchId = parseInt(Array.isArray(paramMatchId) ? paramMatchId[0] : paramMatchId, 10);
+        const matchId = parseInt(req.params.matchId as string, 10);
 
-        if (isNaN(matchId)) {
-            return res.status(400).json({ message: '유효하지 않은 경기 ID입니다.' });
-        }
+        if (isNaN(matchId)) { return res.status(400).json({ message: '유효하지 않은 경기 ID입니다.' }) }
 
         const targetMatch = await Match.findOne({ matchId: matchId });
-
-        if (!targetMatch) {
-            return res.status(404).json({ message: '경기 기록을 찾을 수 없습니다.' });
-        }
+        if (!targetMatch) return res.status(404).json({ message: 'DB에 해당 경기가 존재하지 않습니다.' });
 
         const matchDateStr = new Date(targetMatch.matchDate).toISOString().split('T')[0];
         const participants = [...targetMatch.teamA, ...targetMatch.teamB];
@@ -809,7 +829,7 @@ app.delete('/api/admin/matches/:matchId', adminOnly, async (req: Request, res: R
                     playCount: -1,
                     wins: isWin ? -1 : 0,
                     losses: isWin ? 0 : -1,
-                    rating: isWin ? -delta : delta
+                    // rating: isWin ? -delta : delta
                 },
                 $set: { updatedAt: getKSTNow() }
             };
@@ -833,7 +853,7 @@ app.delete('/api/admin/matches/:matchId', adminOnly, async (req: Request, res: R
                 updateOne: {
                     filter: { date: matchDateStr, userId: userId },
                     update: {
-                        $inc: { endRating: isWin ? -delta : delta },
+                        // $inc: { endRating: isWin ? -delta : delta },
                         $pull: { matches: { matchId: targetMatch.matchId } }
                     }
                 }
@@ -861,6 +881,13 @@ app.delete('/api/admin/matches/:matchId', adminOnly, async (req: Request, res: R
 
 // 서버 실행
 const PORT = process.env.PORT || 5000;
+
+httpServer.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`서버 실행 실패: ${PORT}번 포트가 이미 사용 중입니다. 기존 프로세스를 종료해 주세요.`);
+    }
+});
+
 httpServer.listen(PORT, () => {
     console.log(`서버가 ${PORT}번 포트에서 실행 중입니다.`);
 });

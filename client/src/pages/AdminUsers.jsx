@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useAdmin } from '../hooks/useAdmin'
+
+import { useAdmin } from '../hooks/useAdmin';
+
 import { UserCard } from '../components/card/UserCard'
 import { ModalAdminRoleUpdate } from '../components/modal/ModalAdminRoleUpdate';
 import { timeAgo } from '../utils/timeAgo'
 
 export const AdminUsers = () => {
     const {
-        isAdminUsersLoading,
         adminUserList,
         resetStatusMutation,
         updateRoleMutation,

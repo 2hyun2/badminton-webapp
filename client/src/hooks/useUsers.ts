@@ -20,12 +20,15 @@ export const useUsers = () => {
     useEffect(() => {
         const socketUpdate = (data: ISocketUpdate) => { // 유저 정보 업데이트에 의한 유저 업데이트
             queryClient.invalidateQueries({ queryKey: ['users'] }); // 모든 socket type에 유저 상태 업데이트
+            queryClient.invalidateQueries({ queryKey: ['matchHistory'] }); // 경기 내역도 함께 업데이트
         }
 
         socketOn('users:update', socketUpdate); // socket 연결 
+        socketOn('matches:update', socketUpdate); // 경기 정보 업데이트 연결 
 
         return () => { // unmount시 청소
             if (socketOff) socketOff('users:update', socketUpdate);
+            if (socketOff) socketOff('matches:update', socketUpdate);
         };
     }, [socketOn, socketOff, queryClient])
 
@@ -90,23 +93,18 @@ export const useUsers = () => {
         const waitingList: Record<string, InterfaceUser[]> = {
             '자유': [], '혼복': [], '남복': [], '여복': [],
         };
-        const playingList: Record<number, InterfaceMatch[]> = {};
+        const playingList: InterfaceUser[] = [];
 
         // 계산 로직
         userList.forEach((user: InterfaceUser) => {
             if (user.isPresent) {
                 presentList.push(user);
                 if (user.status === 'RESTING') restingList.push(user);
+                if (user.status === 'PLAYING') playingList.push(user);
                 if (user.status === 'WAITING') {
                     const preferredMatch = user.preferredMatch || '자유';
                     if (waitingList[preferredMatch]) {
                         waitingList[preferredMatch].push(user);
-                    }
-                }
-                if (user.status === 'PLAYING' && user.matchId) {
-                    const matchId = user.matchId;
-                    if (playingList[matchId]) {
-
                     }
                 }
             }

@@ -8,9 +8,7 @@ export const useAdmin = () => {
     const { user: authUser } = useAuthStore();
 
     const {
-        data: adminUserList = [],
-        isLoading: isAdminUsersLoading,
-        refetch: refetchAdminUsers } = useQuery({
+        data: adminUserList = [], isLoading: isAdminUsersLoading, refetch: refetchAdminUsers } = useQuery({
             queryKey: ['adminUsers'],
             queryFn: async () => {
                 const response = await api.get('/admin/users');

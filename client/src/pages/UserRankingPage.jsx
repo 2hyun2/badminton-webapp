@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { UserCard } from '../components/card/UserCard'
+
 import { useUsers } from '../hooks/useUsers'
 import { useMatches } from '../hooks/useMatches'
+
+import { UserCard } from '../components/card/UserCard'
 import { Loading } from '../components/common/Loading'
 
 export const UserRankingPage = () => {

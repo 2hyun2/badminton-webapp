@@ -30,7 +30,6 @@ export const useMatches = (filterConfig = { type: 'period', value: 'total' }) =>
         },
         onSuccess: () => {
             // alert("매칭 정보가 등록되었습니다.");
-            
             queryClient.invalidateQueries({ queryKey: ['users'] });
             queryClient.invalidateQueries({ queryKey: ['matchHistory'] });
         },

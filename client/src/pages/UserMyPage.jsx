@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 
 
 export const UserMyPage = () => {
-    const { me, isLoading, updateUsers } = useUsers();
+    const { me, isLoading, updateUserMutation } = useUsers();
     const [formData, setFormData] = useState({
         name: '',
         password: '',
@@ -51,7 +51,7 @@ export const UserMyPage = () => {
 
         try {
             const { confirmPassword, ...updateData } = formData;
-            await updateUsers.mutateAsync({ id: me.id, ...updateData });
+            await updateUserMutation.mutateAsync({ id: me.id, ...updateData });
             alert('정보가 성공적으로 수정되었습니다.');
             setFormData(prev => ({ ...prev, password: '', confirmPassword: '' })); // 저장 후 비번 필드 비우기
         } catch (error) {
@@ -63,6 +63,8 @@ export const UserMyPage = () => {
         USER: '회원',
         ADMIN: '관리자'
     };
+
+    console.log(updateUserMutation);
 
     return (
         <div className="space-y-4">
@@ -211,9 +213,10 @@ export const UserMyPage = () => {
                 size={'flex'}
                 variant={'blue'}
                 onClick={handleSave}
-                disabled={updateUsers.isPending}
+                disabled={updateUserMutation.isPending}
             >
-                {updateUsers.isPending ? '저장 중...' : '정보 저장하기'}
+                {updateUserMutation.isPending ? '저장 중...' : '정보 저장하기'}
+                {/* '저장 중...' : '정보 저장하기' */}
             </Button>
         </div>
     );

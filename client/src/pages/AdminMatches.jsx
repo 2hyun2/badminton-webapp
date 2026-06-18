@@ -1,7 +1,9 @@
 import React from 'react'
+
+import { useUsers } from '../hooks/useUsers';
 import { useAdmin } from '../hooks/useAdmin';
 import { useMatches } from '../hooks/useMatches';
-import { useUsers } from '../hooks/useUsers';
+
 import { UserCard } from '../components/card/UserCard';
 
 export const AdminMatches = () => {
@@ -25,6 +27,7 @@ export const AdminMatches = () => {
             deleteMatchMutation.mutate(id);
         }
     }
+    console.log(matchHistory);
 
     return (
         <>
@@ -42,7 +45,7 @@ export const AdminMatches = () => {
                                 {/* <div className={`absolute top-0 bottom-0 w-2 ${isTeamAWin ? 'left-0 bg-blue-500' : 'right-0 bg-rose-500'}`} /> */}
 
                                 <div className="absolute top-2 left-1/2 z-10 -translate-x-1/2">
-                                    <button onClick={() => handleMutationDelete(match._id)}
+                                    <button onClick={() => handleMutationDelete(match.matchId)}
                                         className='inline-block text-sm text-white font-bold bg-red-600 rounded shadow py-1 px-1.5 cursor-pointer'>매치 삭제하기</button>
                                 </div>
 

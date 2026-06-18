@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mars, Venus } from 'lucide-react';
+import { useUsers } from '../../hooks/useUsers';
 
 // 성별에 따른 text, bg
 const genderColor = {
@@ -45,9 +46,6 @@ export const UserCard = ({ user, onNavigate }) => {
                 <GenderIcon size={16} />
                 <span className="font-bold">{user?.name}</span>
                 <span className="inline-block text-[10px] font-bold bg-white/80 border rounded shadow  p-0.5 opacity-80">[{user?.rating}]</span>
-                {user?.groupId && 
-                    <span className='inline-block text-[10px] text-white font-bold bg-green-500 border rounded shadow  p-0.5 opacity-80'>{user?.groupId.slice(-4)}</span>
-                }
             </div>
         </div>
     );

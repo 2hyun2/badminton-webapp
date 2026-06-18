@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+
 import { useUsers } from '../hooks/useUsers'
 import { useMatches } from '../hooks/useMatches'
+
 import { UserCard } from '../components/card/UserCard'
 import { Loading } from '../components/common/Loading'
 import { timeAgo } from '../utils/timeAgo'
