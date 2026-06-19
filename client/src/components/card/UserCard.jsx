@@ -43,9 +43,9 @@ export const UserCard = ({ user, onNavigate }) => {
             className={`inline-flex items-center justify-between py-1 px-1.5 border rounded shadow transition-all duration-300 cursor-pointer ${cardStyle}`}
         >
             <div className="flex items-center gap-1 text-xs">
-                <GenderIcon size={16} />
+                {/* <GenderIcon size={16} /> */}
                 <span className="font-bold">{user?.name}</span>
-                <span className="inline-block text-[10px] font-bold bg-white/80 border rounded shadow  p-0.5 opacity-80">[{user?.rating}]</span>
+                <span className="inline-block text-[10px] leading-none font-bold bg-white/80 rounded shadow p-0.5 opacity-80">{user?.rating}</span>
             </div>
         </div>
     );

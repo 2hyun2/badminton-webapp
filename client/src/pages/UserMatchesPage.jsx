@@ -49,7 +49,7 @@ export const UserMatchesPage = ({ viewMine = false }) => {
                         const teamBUsers = userList.filter(user => match.teamB.includes(user.id));
 
                         return (
-                            <div key={match._id} className={`relative text-white ${isMyMatch(match) ? 'bg-blue-500' : 'bg-slate-700'} rounded-2xl overflow-hidden shadow-xl`}>
+                            <div key={match.id} className={`relative text-white ${isMyMatch(match) ? 'bg-blue-500' : 'bg-slate-700'} rounded-2xl overflow-hidden shadow-xl`}>
                                 <div className='flex items-center justify-between py-4 px-2'>
                                     {/* Team A */}
                                     <div className="flex-1 flex flex-col gap-2 items-start">

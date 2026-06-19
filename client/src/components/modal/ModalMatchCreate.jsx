@@ -116,11 +116,6 @@ export const ModalMatchCreate = ({ waitingList, onClose, onMatchStart }) => {
                                     </div>
                                 ))}
                             </div>
-
-                            <div className="flex gap-2">
-                                <Button onClick={onClose} variant="gray" size="flex">닫기</Button>
-                                <Button onClick={handleConfirm} disabled={isConfirmDisabled} variant="blue" size="flex">경기 시작</Button>
-                            </div>
                         </div>
                     )
                     : (
@@ -141,7 +136,14 @@ export const ModalMatchCreate = ({ waitingList, onClose, onMatchStart }) => {
                             </div>
                         </div>
                     )
+
                 }
+                <div className="flex gap-2">
+                    <Button onClick={onClose} variant="gray" size="flex">닫기</Button>
+                    {matchConfig.type !== '' && matchConfig.mode !== '' &&
+                    <Button onClick={handleConfirm} disabled={isConfirmDisabled} variant="blue" size="flex">경기 시작</Button>
+                    }
+                </div>
             </div>
         </div>
     );

@@ -82,6 +82,9 @@ export const Header = () => {
         };
     }, []);
 
+    // socket 정리
+    const isMatchStatus = matchSocket?.type === 'START'
+
     // 현재 me 의 상태에 따른 style 분기
     const myStand = () => {
         if (!me) return { color: 'bg-blue-600', text: '로그인 필요' };
@@ -167,81 +170,52 @@ export const Header = () => {
                 <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-2 backdrop-blur-sm">
                     <div className="w-full max-w-sm bg-white border border-white rounded-2xl shadow-2xl overflow-hidden">
 
-                        <div className={`text-white text-center p-2 ${matchSocket.type === 'START' ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-blue-500 to-blue-900'}`}>
-                            <h2 className="text-2xl font-black tracking-wide">{matchSocket.type === 'START' ? '경기 시작!' : '경기 종료!'}</h2>
+                        <div className={`relative text-white text-center p-2 ${isMatchStatus ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-blue-500 to-blue-900'}`}>
+                            <h2 className="text-2xl font-black tracking-wide">{isMatchStatus ? '경기 시작!' : '경기 종료!'}</h2>
                             <span className="text-base">{matchSocket.matchType === 'SINGLE' ? '1대1' : '2대2'} - {matchSocket.matchMode === 'RANKED' ? '랭크전' : '친선전'}</span>
+                            <div className="absolute top-2 left-2 text-sm font-medium">#{matchSocket?.matchId}</div>
                         </div>
 
                         <div className="py-4 px-2 text-center">
-                            {matchSocket.type === 'START' ? (
-                                <div className="space-y-4">
-                                    <div className="">
-                                        <p className="text-lg text-slate-800 font-bold">새로운 경기가 배정되었습니다!</p>
-                                        <p className="text-base text-slate-600 font-bold">코트로 이동하여 경기를 준비해 주세요.</p>
-                                    </div>
+                            <div className="space-y-4">
+                                <div className="">
+                                    <p className="text-lg text-slate-800 font-bold">{isMatchStatus ? '경기가 배정되었습니다!' : '경기가 종료되었습니다.'}</p>
+                                    <p className="text-base text-slate-600 font-bold">{isMatchStatus
+                                        ? '코트로 이동해 주세요.' :
+                                        (matchSocket.matchMode === 'RANKED' ? 'Rating 변동이 있습니다.' : '수고하셨습니다!')}
+                                    </p>
+                                </div>
 
-                                    <div className="flex justify-between border border-slate-300 rounded shadow p-2">
-                                        {/* TEAM A */}
-                                        <div className="space-y-2 w-full border border-slate-100 rounded shadow p-2">
-                                            <h4 className="title text-lg text-red-500 font-bold ">TEAM A</h4>
-                                            {matchSocket.teamA
-                                                .filter(user => user)
-                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
-                                            }
-                                        </div>
-                                        {/* TEAM B */}
-                                        <div className="space-y-2 w-full border border-slate-100 rounded shadow p-2">
-                                            <h4 className="title text-lg text-blue-500 font-bold ">TEAM B</h4>
-                                            {matchSocket.teamB
-                                                .filter(user => user)
-                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
-                                            }
-                                        </div>
+                                <div className="flex justify-between border border-slate-300 rounded shadow p-2">
+                                    {/* TEAM A */}
+                                    <div className="space-y-2 w-full border border-slate-100 rounded shadow p-2">
+                                        <h4 className="title text-lg text-red-500 font-bold ">TEAM A {matchSocket?.type === 'END' && (<span className='text-[95%]'>{matchSocket.winner === 'A' ? '승' : '패'}</span>)}</h4>
+                                        {matchSocket.teamA
+                                            .filter(user => user)
+                                            .map(user => <UserCard user={userList.find(u => u.id === user)} />)
+                                        }
+                                    </div>
+                                    {/* TEAM B */}
+                                    <div className="space-y-2 w-full border border-slate-100 rounded shadow p-2">
+                                        <h4 className="title text-lg text-blue-500 font-bold ">TEAM B {matchSocket?.type === 'END' && (<span className='text-[95%]'>{matchSocket.winner === 'A' ? '패' : '승'}</span>)}</h4>
+                                        {matchSocket.teamB
+                                            .filter(user => user)
+                                            .map(user => <UserCard user={userList.find(u => u.id === user)} />)
+                                        }
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <p className="text-lg text-slate-800 font-bold">경기가 종료되었습니다.</p>
-                                    <div className="relative flex gap-2 justify-between border border-slate-300 rounded shadow p-2">
-                                        {/* TEAM A */}
-                                        <div className={`relative space-y-2 w-full border rounded shadow p-2`}>
-                                            <div className="flex items-center justify-center gap- text-lg text-red-500 font-bold text-center">
-                                                <h4 className="">TEAM A</h4>
-                                                {matchSocket.winner === 'A' && <span className=""> WIN</span>}
-                                            </div>
-                                            {matchSocket.teamA
-                                                .filter(user => user)
-                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
-                                            }
-                                        </div>
-                                        {/* TEAM B */}
-                                        <div className={`relative space-y-2 w-full border rounded shadow p-2`}>
-                                            <div className="flex items-center justify-center gap-1 text-lg text-blue-500 font-bold text-center">
-                                                <h4 className="">TEAM B</h4>
-                                                {matchSocket.winner === 'B' && <span className=""> WIN</span>}
-                                            </div>
-                                            {matchSocket.teamB
-                                                .filter(user => user)
-                                                .map(user => <UserCard user={userList.find(u => u.id === user)} />)
-                                            }
-                                        </div>
+                                {/* rating 변화 */}
+                                {matchSocket.eloDelta !== 0  && matchSocket.eloDelta &&
+                                    <div className="relative flex flex-col items-center justify-center text-white font-bold text-center bg-blue-500 py-1 px-2 rounded shadow">
+                                        <span className="text-base">Elo 변화 ±{matchSocket.eloDelta}</span>
                                     </div>
-                                    {/* rating 변화 */}
-                                    {matchSocket.eloDelta &&
-                                        <div className="relative flex flex-col items-center justify-center text-white font-bold text-center bg-blue-500 py-1 px-2 rounded shadow">
-                                            <span className="text-base">Elo 변화 ±{matchSocket.eloDelta}</span>
-                                        </div>
-                                    }
-                                </div>
-                            )}
+                                }
+                            </div>
                         </div>
 
                         <div className="p-2 border-t border-slate-100 flex gap-2">
-                            <button
-                                onClick={() => setMatchSocket(null)}
-                                className={`w-full py-2 text-white font-bold rounded-lg shadow-md cursor-pointer ${matchSocket.type === 'START' ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'}`}
-                            >
-                                {matchSocket.type === 'START' ? '경기장 입장하기' : '확인'}
+                            <button onClick={() => setMatchSocket(null)} className={`w-full py-2 text-white font-bold rounded-lg shadow-md cursor-pointer ${isMatchStatus ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'}`}>
+                                {isMatchStatus ? '경기장 입장하기' : '확인했습니다.'}
                             </button>
                         </div>
                     </div>
