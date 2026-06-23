@@ -1,51 +1,25 @@
-import axios, { InternalAxiosRequestConfig, AxiosError} from 'axios';
+import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 import useAuthStore from '../store/useAuthStore';
 
 const api = axios.create({ baseURL: 'http://localhost:5000/api' });
-
-let isLoggingOut = false;
 
 // Request Interceptor: 요청이 서버로 떠나기 전에 가로채는 통로
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     // InternalAxiosRequestConfig : axios가 요청을 보낼 때 필요한 설정(헤더, URL, 메서드 등)의 정식 타입입니다.
     // 이 타입을 지정해야만 config.headers와 같은 속성을 안전하게 꺼내 쓸 수 있습니다.
-    const { user, token, lastAction, logoutUser, updateActivity } = useAuthStore.getState();
-
-    if (user && lastAction && token) {
-        const now = Date.now();
-        const sessionTimeout = 1 * 60 * 60 * 1000;
-
-        if(now - lastAction > sessionTimeout) {
-            if (!isLoggingOut) {
-                isLoggingOut = true;
-                logoutUser().then(() => {
-                    alert('1시간 동안 활동이 없어 보안을 위해 자동 로그아웃 되었습니다.');
-                    window.location.href = '/login'
-                })
-            }
-            // axios 종료
-            return Promise.reject(new Error('미활동 에러'))
-        }
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-        updateActivity(); // set({ lastAction: Date.now() });
-    }
+    const { token } = useAuthStore.getState();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
 
     return config
 });
 
 api.interceptors.response.use(
-    (response) => response, // 통신 성공
-    async (error) => { // 에러
-        const { logoutUser } = useAuthStore.getState();
-        
-        // 에러 401 || 403
+    (response) => response,
+    async (error) => {
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            if (!isLoggingOut) {
-                isLoggingOut = true;
-                await logoutUser();
-                alert("세션이 만료되어 자동으로 로그아웃되었습니다.");
-                window.location.href = "/login";
-            }
+            useAuthStore.setState({ user: null, token: null });
+            alert("세션이 만료되어 로그인 페이지로 이동합니다.");
+            window.location.href = "/login";
         }
         return Promise.reject(error);
     }

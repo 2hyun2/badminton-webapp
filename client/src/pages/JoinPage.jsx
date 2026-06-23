@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import useAuthStore from '../store/useAuthStore';
 import { Button } from '../components/common/Button';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuthMutation } from '../hooks/useAuth';
 
 export const JoinPage = () => {
+
     const navigate = useNavigate();
-    const goNavigate = () => navigate('/login');
+    const goLoginPage = () => navigate('/login');
     // 회원가입 입력값 state
     const [username, setUsername] = useState(''); // string
     const [password, setPassword] = useState(''); // string
@@ -17,8 +18,8 @@ export const JoinPage = () => {
     const [isIdChecked, setIsIdChecked] = useState(false); // 아이디 중복 체크: boolean
     const [checkedUsername, setCheckedUsername] = useState(''); // 중복체크 통과: boolean
 
-    // zustand - 아이디 중복체크 로직, 회원 가입 진행 로직, 로딩중
-    const { checkId, registerUser, isLoading } = useAuthStore();
+    // tanstack-query - 아이디 중복체크 로직, 회원 가입 진행 로직, 로딩중
+    const { checkIdMutation, registerMutation } = useAuthMutation();
 
     // 아이디 입력값 && 중복체크 => username
     const handleIdChange = (e) => {
@@ -36,15 +37,17 @@ export const JoinPage = () => {
             alert('아이디를 입력해 주세요.');
             return;
         }
-
-        const result = await checkId(username);
-        // result.isUnique = boolean
-        if (result.isUnique) {
-            alert(result.message);
-            setIsIdChecked(true);
-            setCheckedUsername(username);
-        } else {
-            alert(result.message);
+        try {
+            const result = await checkIdMutation.mutateAsync(username);
+            if (result.isUnique) {
+                alert(result.message);
+                setIsIdChecked(true);
+                setCheckedUsername(username);
+            } else {
+                alert(result.message);
+                setIsIdChecked(false);
+            }
+        } catch (error) {
             setIsIdChecked(false);
         }
     };
@@ -55,21 +58,17 @@ export const JoinPage = () => {
             alert('모든 항목을 입력해 주세요.');
             return;
         }
-
         if (!isIdChecked || username !== checkedUsername) {
             alert('아이디 중복 확인을 먼저 진행해 주세요.');
             return;
         }
 
         const userData = { username, password, birthday, name, gender };
-        const result = await registerUser(userData);
+        try {
+            const result = await registerMutation.mutateAsync(userData);
+            result.success && goLoginPage();
+        } catch (error) { }
 
-        if (result.success) {
-            alert(result.message);
-            goNavigate();
-        } else {
-            alert(result.message);
-        }
     };
 
     return (
@@ -87,7 +86,7 @@ export const JoinPage = () => {
                                 onChange={handleIdChange} placeholder="아이디 입력" required
                             />
                             <Button
-                                onClick={handleCheckIdClick} disabled={isIdChecked || isLoading}
+                                type='button' onClick={handleCheckIdClick} disabled={checkIdMutation.isPending || isIdChecked}
                                 variant={isIdChecked ? "gray" : "blue"} size="sm"
                             >
                                 {isIdChecked ? '확인 완료' : '중복 확인'}
@@ -141,16 +140,12 @@ export const JoinPage = () => {
                     </div>
 
                     {/* 회원 가입 버튼 */}
-                    <Button
-                        type='submit' disabled={isLoading} variant='blue' size='md'
-                    >
-                        {isLoading ? '회원가입 중...' : '회원가입'}    
-                    </Button>
+                    <Button type='submit' disabled={registerMutation.isPending || !isIdChecked} variant='blue' size='md'>회원가입</Button>
                 </form>
 
                 {/* etc */}
                 <div className="mt-4 text-center text-xs text-slate-500">
-                    
+
                     <Link to={'/login'} className='text-base'>이미 계정이 있으신가요?  <span className="text-blue-500 font-bold">로그인하기</span></Link>
                 </div>
             </div>

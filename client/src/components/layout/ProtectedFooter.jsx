@@ -18,7 +18,8 @@ export const ProtectedFooter = ({ onMatchCreate, onStatusToggle }) => {
 
     const handleExit = () => {
         if (!user) return;
-        if (!window.confirm("정말 퇴장하시겠습니까? 경기 중일 경우 무효화됩니다.")) return;
+        if (user.status === 'PLAYING') alert('경기중에는 퇴장이 불가합니다.')
+        if (!window.confirm("정말 퇴장하시겠습니까?")) return;
         exitMutation.mutate(user.id);
     };
 

@@ -195,6 +195,58 @@ const counterSequence = async (name: string) => {
     return counter?.seq || 0;
 }
 
+/** UPDATE API */
+// 미들웨어(Middleware) 함수: API 본 요청이 실행되기 '중간(Middle)'에 가로채서 검사하는 역할입니다.
+// Express.js 미들웨어의 3번째 인자는 무조건 스위치 next 가 존재
+// 일반 유저 인증 미들웨어
+const userAuth = (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+
+    // 토큰이 제대로 넘어왔는지 확인
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: '인증 토큰이 필요합니다.' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        // 토큰 해독 및 검증 (.env의 JWT_SECRET 사용)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as CustomJwtPayload;
+
+        // 해독된 정보(로그인할 때 넣은 userId, role 등)를 req.user에 저장
+        req.user = decoded; // CustomJwtPayload 타입으로 할당
+
+        // 통과! 다음 본 API 로직으로 이동
+        next();
+    } catch (error) {
+        console.error('토큰 검증 에러:', error);
+        return res.status(401).json({ message: '유효하지 않거나 만료된 토큰입니다.' });
+    }
+};
+// 관리자 확인 미들웨어
+const adminOnly = (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization; // request: header - authorization
+    if (!authHeader || !authHeader.startsWith('Bearer ')) { // Bearer [토큰문자열] - 통신 규약(HTTP 표준)
+        return res.status(401).json({ message: '인증 토큰이 필요합니다.' });
+    }
+
+    const token = authHeader.split(' ')[1]; // 위 값에서 공백을 기준으로 0번이 아닌 1번째 값 
+
+    try {
+        // jwt.verify: 서버만 알고 있는 비밀키(JWT_SECRET)를 이용해 토큰이 위조되지 않았는지, 기한이 안 지났는지 검증하고 해독(decoded)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as CustomJwtPayload;
+        req.user = decoded; // 요청 객체에 사용자 정보 추가
+        if (req.user?.role !== 'ADMIN') {
+            return res.status(403).json({ message: '관리자 권한이 필요합니다.' });
+        }
+
+        next(); // 통과
+    } catch (error) {
+        console.error('토큰 검증 에러:', error);
+        return res.status(401).json({ message: '유효하지 않거나 만료된 토큰입니다.' });
+    }
+};
+
 // 아이디 중복 확인
 app.post('/api/users/check-id', async (req: Request, res: Response): Promise<any> => {
     try {
@@ -253,26 +305,6 @@ app.post('/api/users/login', async (req: Request, res: Response): Promise<any> =
     } catch (error) {
         console.error('로그인 에러:', error);
         res.status(500).json({ message: '서버 에러' });
-    }
-});
-// 전체 유저 조회
-app.get('/api/users', async (req: Request, res: Response): Promise<any> => {
-    try {
-        const users = await User.find() // 데이터 찾기 (Read) - 유저 전체 *비밀번호는 schema 에서 제외함*
-        res.status(200).json(users);
-    } catch (error) {
-        console.error('유저 조회 에러:', error);
-        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
-    }
-})
-// 전체 유저 조회 - 입장 상태인 유저만
-app.get('/api/users/present', async (req: Request, res: Response): Promise<any> => {
-    try {
-        const presentUsers = await User.find({ isPresent: true }); // 데이터 찾기 (Read) - 유저 전체 - isPresent: true: 출석 상태의 유저만
-        res.status(200).json(presentUsers);
-    } catch (error) {
-        console.error('현재 입장 유저 조회 에러:', error);
-        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
     }
 });
 // 로그인 => 입장
@@ -354,65 +386,33 @@ app.post('/api/users/exit', async (req: Request, res: Response): Promise<any> =>
         res.status(500).json({ message: '서버 에러' });
     }
 });
-
-/** UPDATE API */
-// 미들웨어(Middleware) 함수: API 본 요청이 실행되기 '중간(Middle)'에 가로채서 검사하는 역할입니다.
-// Express.js 미들웨어의 3번째 인자는 무조건 스위치 next 가 존재
-// 일반 유저 인증 미들웨어
-const userAuth = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-
-    // 토큰이 제대로 넘어왔는지 확인
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: '인증 토큰이 필요합니다.' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
+// 전체 유저 조회
+app.get('/api/users', async (req: Request, res: Response): Promise<any> => {
     try {
-        // 토큰 해독 및 검증 (.env의 JWT_SECRET 사용)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as CustomJwtPayload;
-
-        // 해독된 정보(로그인할 때 넣은 userId, role 등)를 req.user에 저장
-        req.user = decoded; // CustomJwtPayload 타입으로 할당
-
-        // 통과! 다음 본 API 로직으로 이동
-        next();
+        const users = await User.find() // 데이터 찾기 (Read) - 유저 전체 *비밀번호는 schema 에서 제외함*
+        res.status(200).json(users);
     } catch (error) {
-        console.error('토큰 검증 에러:', error);
-        return res.status(401).json({ message: '유효하지 않거나 만료된 토큰입니다.' });
+        console.error('유저 조회 에러:', error);
+        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
     }
-};
-// 관리자 확인 미들웨어
-const adminOnly = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization; // request: header - authorization
-    if (!authHeader || !authHeader.startsWith('Bearer ')) { // Bearer [토큰문자열] - 통신 규약(HTTP 표준)
-        return res.status(401).json({ message: '인증 토큰이 필요합니다.' });
-    }
-
-    const token = authHeader.split(' ')[1]; // 위 값에서 공백을 기준으로 0번이 아닌 1번째 값 
-
+})
+// 전체 유저 조회 - 입장 상태인 유저만
+app.get('/api/users/present', async (req: Request, res: Response): Promise<any> => {
     try {
-        // jwt.verify: 서버만 알고 있는 비밀키(JWT_SECRET)를 이용해 토큰이 위조되지 않았는지, 기한이 안 지났는지 검증하고 해독(decoded)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as CustomJwtPayload;
-        req.user = decoded; // 요청 객체에 사용자 정보 추가
-        if (req.user?.role !== 'ADMIN') {
-            return res.status(403).json({ message: '관리자 권한이 필요합니다.' });
-        }
-
-        next(); // 통과
+        const presentUsers = await User.find({ isPresent: true }); // 데이터 찾기 (Read) - 유저 전체 - isPresent: true: 출석 상태의 유저만
+        res.status(200).json(presentUsers);
     } catch (error) {
-        console.error('토큰 검증 에러:', error);
-        return res.status(401).json({ message: '유효하지 않거나 만료된 토큰입니다.' });
+        console.error('현재 입장 유저 조회 에러:', error);
+        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
     }
-};
+});
+
 
 // 업데이트 가능한 목록 (InterfaceUser의 키값들만 허용하도록 타입 지정: keyof InterfaceUser 적용)
 const ALLOWED_USER_FIELDS: Array<keyof InterfaceUser> = [
     'name', 'birthday', 'gender', 'preferredMatch', 'status',
     'groupId', 'password', 'isBirthdayPublic', 'isGenderPublic', 'bio'
 ];
-
 // 업데이트 총괄 
 app.post('/api/users/update', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
@@ -456,14 +456,13 @@ app.post('/api/users/update', userAuth, async (req: Request, res: Response): Pro
         res.status(500).json({ message: '서버 에러가 발생했습니다.' });
     }
 });
-
 // 경기 시작 
 app.post("/api/match/start", async (req: Request, res: Response): Promise<any> => {
     // 프론트에서 오는 matchPlayer가 숫자 배열(number[])임을 명시
-    const { matchPlayer, matchType, matchMode }: 
-        { matchPlayer: (number | null)[], matchType: 'SINGLE' | 'DOUBLE', matchMode: 'RANKED' | 'FRIENDLY' } 
+    const { matchPlayer, matchType, matchMode }:
+        { matchPlayer: (number | null)[], matchType: 'SINGLE' | 'DOUBLE', matchMode: 'RANKED' | 'FRIENDLY' }
         = req.body;
-    
+
     if (!matchPlayer || !Array.isArray(matchPlayer) || matchPlayer.length === 0) {
         return res.status(400).json({ message: "선택된 플레이어가 없습니다." });
     }
@@ -516,7 +515,6 @@ app.post("/api/match/start", async (req: Request, res: Response): Promise<any> =
         res.status(500).json({ message: "매칭 실패" });
     }
 });
-
 // 경기 종료 
 app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => {
     const { matchId, winner, scoreA, scoreB } = req.body;
@@ -536,7 +534,7 @@ app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => 
         // VOID 처리: 경기 무효 (아무것도 기록 안 함)
         if (winner === 'VOID' || winner === 'cancel') {
             await User.updateMany({ id: { $in: [...teamAPlayer, ...teamBPlayer] } }, { $set: { status: "RESTING", matchId: null, matchSlot: null, updatedAt: getKSTNow() } });
-            
+
             await Match.deleteOne({ matchId: matchId });
 
             // WebSocket 이벤트 발생: 유저 상태 및 매치 목록 업데이트
@@ -588,9 +586,9 @@ app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => 
         io.emit('users:update', { type: 'UPDATE' });
         io.emit('matches:update', { type: 'UPDATE' });
         [...teamAPlayer, ...teamBPlayer].forEach(id => {
-            io.to(`user_${id}`).emit('match:update', { 
-                type: 'END', 
-                matchId: matchId, 
+            io.to(`user_${id}`).emit('match:update', {
+                type: 'END',
+                matchId: matchId,
                 matchType: thisMatch.matchType,
                 matchMode: thisMatch.matchMode,
                 matchStatus: thisMatch.matchStatus,
@@ -607,7 +605,6 @@ app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => 
         res.status(500).json({ message: "오류 발생" });
     }
 });
-
 // 경기 내역
 app.get('/api/match/history', async (req: Request, res: Response): Promise<any> => {
     try {
@@ -640,7 +637,6 @@ app.get('/api/match/history', async (req: Request, res: Response): Promise<any> 
         res.status(500).json({ message: '서버 에러' });
     }
 });
-
 // 경기 내역 - 특정 유저 의 기록 갖고오기
 app.get('/api/match/history/:userId', async (req: Request, res: Response): Promise<any> => {
     try {
@@ -739,7 +735,7 @@ app.post('/api/admin/users/:userId/reset-status', adminOnly, async (req: Request
 
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { $set: { status: "RESTING", matchId: null, matchSlot: null} },
+            { $set: { status: "RESTING", matchId: null, matchSlot: null } },
             { returnDocument: 'after' }
         );
         if (!updatedUser) return res.status(404).json({ message: 'DB에 해당 유저가 존재하지 않습니다.' });

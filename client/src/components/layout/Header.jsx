@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+
 import useAuthStore from '../../store/useAuthStore';
+
 import { useUsers } from '../../hooks/useUsers';
 import { useSocket } from '../../hooks/useSocket';
+import { useAuthMutation } from '../../hooks/useAuth';
+
 import { UserCard } from '../../components/card/UserCard'
 
 export const Header = () => {
@@ -11,9 +15,10 @@ export const Header = () => {
     // react-router-dom - navigate
     const navigate = useNavigate();
     // zustand
-    const { user, logoutUser } = useAuthStore(); // 회원: 유저 로그인 정보, 로그아웃
+    const { user } = useAuthStore(); // 회원: 유저 로그인 정보,
     // react query
     const { me, userList } = useUsers(); // 내 정보, 유저 리스트 
+    const { logoutMutation } = useAuthMutation(); // 로그아웃
     // socket
     const { connectSocket, disconnectSocket, socketOn, socketOff } = useSocket(); // 소켓 연결, 소켓 연결해제, 소켓 이벤트, 소켓 이벤트 해제
 
@@ -108,11 +113,13 @@ export const Header = () => {
     const closeMenu = () => setIsMenuOpen(false);
 
     // 로그아웃 클릭시 실행될 함수 
-    const handleLogout = () => {
-        logoutUser();
-        alert('로그아웃 되었습니다.');
-        closeMenu();
-        navigate('/login', { replace: true });
+    const handleLogout = async () => {
+        try {
+            await logoutMutation.mutateAsync(user.id)
+            closeMenu();
+            alert('로그아웃 되었습니다.');
+            navigate('/login', { replace: true });
+        } catch (error) {}
     };
 
     return (
