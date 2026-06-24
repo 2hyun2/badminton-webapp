@@ -12,6 +12,7 @@ import { MainPage } from './pages/MainPage'
 import { UserListPage } from './pages/UserListPage'
 import { UserRankingPage } from './pages/UserRankingPage'
 import { UserRecordPage } from './pages/UserRecordPage'
+import { UserDailyRecordPage } from './pages/UserDailyRecordPage'
 import { UserMatchesPage } from './pages/UserMatchesPage'
 import { UserMyPage } from './pages/UserMyPage'
 import { Loading } from './components/common/Loading'
@@ -33,6 +34,8 @@ const App = () => {
                 <Route path='/ranking' element={<UserRankingPage />} />
                 <Route path='/record' element={<UserRecordPage />} />
                 <Route path='/record/:id' element={<UserRecordPage />} />
+                <Route path='/daily/' element={<UserDailyRecordPage />} />
+                <Route path='/daily/:id' element={<UserDailyRecordPage />} />
                 <Route path='/history' element={<UserMatchesPage />} />
                 <Route path='/mypage' element={<UserMyPage />} />
                 <Route path='/loading' element={<Loading />} />

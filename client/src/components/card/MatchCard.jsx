@@ -4,7 +4,7 @@ import { Button } from '../common/Button';
 import { useUsers } from '../../hooks/useUsers';
 
 
-export const MatchCard = ({ match, onOpenModal }) => {
+export const MatchCard = ({ match = {}, onOpenModal }) => {
     const { me, userList } = useUsers();
 
     const { matchId, matchMode, matchType, teamA, teamB } = match

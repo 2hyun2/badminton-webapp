@@ -407,6 +407,26 @@ app.get('/api/users/present', async (req: Request, res: Response): Promise<any> 
     }
 });
 
+// daily_records
+// 유저 한명 dailyRecord 전체 조회
+app.get('/api/daily/one/:userId', async (req: Request, res: Response): Promise<any> => {
+    try {
+        const paramUserId = req.params.userId;
+        const userId = parseInt(Array.isArray(paramUserId) ? paramUserId[0] : paramUserId, 10);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ message: '유효하지 않은 유저 ID입니다.' });
+        }
+
+        // 유저의 전체 데일리 기록을 최신순(-1)으로 조회
+        const dailyData = await DailyRecord.find({ userId }).sort({ date: -1 });
+
+        res.status(200).json(dailyData);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '서버 에러' });
+    }
+});
 
 // 업데이트 가능한 목록 (InterfaceUser의 키값들만 허용하도록 타입 지정: keyof InterfaceUser 적용)
 const ALLOWED_USER_FIELDS: Array<keyof InterfaceUser> = [
