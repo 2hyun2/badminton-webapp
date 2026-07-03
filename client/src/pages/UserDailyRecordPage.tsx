@@ -10,6 +10,8 @@ import { Loading } from "../components/common/Loading";
 import { InterfaceUser, InterfaceMatch } from "../types/badminton";
 import { MatchCard } from "../components/card/MatchCard";
 
+import { timeZone } from "../utils/timeZone";
+
 export const UserDailyRecordPage = () => {
     const { me, userList } = useUsers();
     const { matchHistory } = useMatches();
@@ -40,8 +42,8 @@ export const UserDailyRecordPage = () => {
                         </span>
                     </summary>
                     <div className="space-y-1 mt-2 text-sm text-gray-600">
-                        {record.entryTime && <p>{`입장: ${record.entryTime}`}</p>}
-                        {record.exitTime && <p>{`퇴장: ${record.exitTime}`}</p>}
+                        {record.entryTime && <p>{`입장: ${timeZone(record.entryTime).minute}`}</p>}
+                        {record.exitTime && <p>{`퇴장: ${timeZone(record.exitTime).minute}`}</p>}
                         {record.startRating && <p>{`시작 Rating: ${record.startRating}`}</p>}
                         {record.endRating && <p>{`퇴장 Rating: ${record.endRating}`}</p>}
 

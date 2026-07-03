@@ -145,9 +145,10 @@ export const Header = () => {
             <div className={`absolute top-full left-0 right-0 w-full text-white ${statusInfo.color} z-50 overflow-hidden transition-all duration-300 ease ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-[0px] opacity-0'}`}>
                 <nav className="flex flex-col text-base font-semibold text-right border-t border-slate-100 [text-shadow:_0_0_2px_rgb(96_165_250_/_0.8)]">
                     <Link to="/" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">메인</Link>
+                    <Link to="/record" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">개인 기록</Link>
+                    <Link to="/daily" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">일별 기록</Link>
                     <Link to="/members" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">회원 목록</Link>
                     <Link to="/ranking" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">종합 순위</Link>
-                    <Link to="/record" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">개인 기록</Link>
                     <Link to="/history" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">경기 목록</Link>
                     <Link to="/mypage" onClick={closeMenu} className="border-b border-slate-100 p-2 hover:bg-blue-700">내 정보</Link>
                     {user ? (
