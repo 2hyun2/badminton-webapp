@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import api from './api';
 import useAuthStore from "../store/useAuthStore";
 import { useSocket } from "./useSocket";
@@ -16,35 +16,6 @@ export const useUsers = () => {
     const { socketOn, socketOff } = useSocket(); // useSocket
     //  Tanstack Query
     const queryClient = useQueryClient(); // React Query master key;
-    // useEffect from 'react';
-    useEffect(() => {
-        const socketUpdate = (data: ISocketUpdate) => { // 유저 정보 업데이트에 의한 유저 업데이트
-            queryClient.invalidateQueries({ queryKey: ['users'] }); // 모든 socket type에 유저 상태 업데이트
-            queryClient.invalidateQueries({ queryKey: ['matchHistory'] }); // 경기 내역도 함께 업데이트
-
-            if (authUser && data.userId === authUser.id) {
-                if (data.type === 'EXIT') {
-                    useAuthStore.setState((state: any) => ({
-                        token: null,
-                        user: state.user
-                            ? { ...state.user, isPresent: false, status: '' }
-                            : null
-                    }));
-                    alert('1시간 동안 활동이 없어 자동 퇴장되었습니다.');
-                    window.location.href = '/login';
-                } else if (data.type === 'UPDATE') {
-                }
-            }
-        }
-
-        socketOn('users:update', socketUpdate); // socket 연결 
-        socketOn('matches:update', socketUpdate); // 경기 정보 업데이트 연결 
-
-        return () => { // unmount시 청소
-            if (socketOff) socketOff('users:update', socketUpdate);
-            if (socketOff) socketOff('matches:update', socketUpdate);
-        };
-    }, [socketOn, socketOff, queryClient, authUser])
 
     // useQuery 데이터 불러오기
     const { data: userList = [], isLoading, isError, refetch } = useQuery<InterfaceUser[]>({

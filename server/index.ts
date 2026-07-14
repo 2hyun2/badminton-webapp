@@ -309,7 +309,7 @@ app.post('/api/users/login', async (req: Request, res: Response): Promise<any> =
 });
 // 로그인 => 입장
 // io.emit('users:update', { type: 'ENTRY' });
-app.post('/api/users/entry', async (req: Request, res: Response): Promise<any> => {
+app.post('/api/users/entry', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         console.log(req.body);
         const userId = parseInt(req.body.id, 10);
@@ -341,7 +341,7 @@ app.post('/api/users/entry', async (req: Request, res: Response): Promise<any> =
 });
 // 로그인 => 퇴장
 // io.emit('users:update', { type: 'EXIT', userId });
-app.post('/api/users/exit', async (req: Request, res: Response): Promise<any> => {
+app.post('/api/users/exit', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         const userId = parseInt(req.body.id, 10);
         if (isNaN(userId)) {
@@ -387,7 +387,7 @@ app.post('/api/users/exit', async (req: Request, res: Response): Promise<any> =>
     }
 });
 // 전체 유저 조회
-app.get('/api/users', async (req: Request, res: Response): Promise<any> => {
+app.get('/api/users', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         const users = await User.find() // 데이터 찾기 (Read) - 유저 전체 *비밀번호는 schema 에서 제외함*
         res.status(200).json(users);
@@ -397,7 +397,7 @@ app.get('/api/users', async (req: Request, res: Response): Promise<any> => {
     }
 })
 // 전체 유저 조회 - 입장 상태인 유저만
-app.get('/api/users/present', async (req: Request, res: Response): Promise<any> => {
+app.get('/api/users/present', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         const presentUsers = await User.find({ isPresent: true }); // 데이터 찾기 (Read) - 유저 전체 - isPresent: true: 출석 상태의 유저만
         res.status(200).json(presentUsers);
@@ -409,7 +409,7 @@ app.get('/api/users/present', async (req: Request, res: Response): Promise<any> 
 
 // daily_records
 // 유저 한명 dailyRecord 전체 조회
-app.get('/api/daily/one/:userId', async (req: Request, res: Response): Promise<any> => {
+app.get('/api/daily/one/:userId', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         const paramUserId = req.params.userId;
         const userId = parseInt(Array.isArray(paramUserId) ? paramUserId[0] : paramUserId, 10);
@@ -477,7 +477,7 @@ app.post('/api/users/update', userAuth, async (req: Request, res: Response): Pro
     }
 });
 // 경기 시작 
-app.post("/api/match/start", async (req: Request, res: Response): Promise<any> => {
+app.post("/api/match/start", userAuth, async (req: Request, res: Response): Promise<any> => {
     // 프론트에서 오는 matchPlayer가 숫자 배열(number[])임을 명시
     const { matchPlayer, matchType, matchMode }:
         { matchPlayer: (number | null)[], matchType: 'SINGLE' | 'DOUBLE', matchMode: 'RANKED' | 'FRIENDLY' }
@@ -536,7 +536,7 @@ app.post("/api/match/start", async (req: Request, res: Response): Promise<any> =
     }
 });
 // 경기 종료 
-app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => {
+app.post("/api/match/end", userAuth, async (req: Request, res: Response): Promise<any> => {
     const { matchId, winner, scoreA, scoreB } = req.body;
     if (!matchId) return res.status(400).json({ message: "매치 ID가 필요합니다." });
 
@@ -626,7 +626,7 @@ app.post("/api/match/end", async (req: Request, res: Response): Promise<any> => 
     }
 });
 // 경기 내역
-app.get('/api/match/history', async (req: Request, res: Response): Promise<any> => {
+app.get('/api/match/history', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         // req.query에서 넘어온 값들이 문자열임을 단언(Type Assertion)
         const period = req.query.period as string | undefined;
@@ -658,7 +658,7 @@ app.get('/api/match/history', async (req: Request, res: Response): Promise<any> 
     }
 });
 // 경기 내역 - 특정 유저 의 기록 갖고오기
-app.get('/api/match/history/:userId', async (req: Request, res: Response): Promise<any> => {
+app.get('/api/match/history/:userId', userAuth, async (req: Request, res: Response): Promise<any> => {
     try {
         const paramUserId = req.params.userId;
         const userId = parseInt(Array.isArray(paramUserId) ? paramUserId[0] : paramUserId, 10);

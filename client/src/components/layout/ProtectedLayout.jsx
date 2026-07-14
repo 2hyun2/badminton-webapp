@@ -10,8 +10,12 @@ import { ModalWaitOption } from '../modal/ModalWaitOption';
 import { Loading } from '../common/Loading';
 import { useMatches } from '../../hooks/useMatches';
 
+import { useSocketSync } from '../../hooks/useSocketSync';
 
-export const ProtectedLayout = () => {
+
+export const ProtectedLayout = () => {  
+    useSocketSync();
+    
     const [isMatchModalOpen, setIsMatchModalOpen] = useState(false); // 매칭 팝업 boolean
     const [waitTargetId, setWaitTargetId] = useState(null); // 모달 제어용 ID (기본값 null)
     const { user } = useAuthStore(); // 로그인 세션 정보는 AuthStore에서 직접 가져옵니다.

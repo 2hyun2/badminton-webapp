@@ -32,6 +32,7 @@ export const useAdmin = () => {
     // 유저 등급 변경 관리자 본인은 변경불가 관리자 이동시 서버 관리자 문의
     const allowedRoles = ['USER', 'MANAGER'] as const;
     type Role = typeof allowedRoles[number];
+
     const updateRoleMutation = useMutation({
         mutationFn: async ({ id, role }: { id: number, role: Role }) => {
             if (authUser?.id === id) throw new Error('본인의 등급은 변경 불가입니다. 서버 관리자에게 문의하세요.');
