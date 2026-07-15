@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react'
 
 import { useUsers } from '../hooks/useUsers';
 import { useMatches } from '../hooks/useMatches';
@@ -8,8 +7,10 @@ import { UserCard } from '../components/card/UserCard';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 
+import { MatchCard } from '../components/card/MatchCard';
+import { timeZone } from '../utils/timeZone';
+
 export const UserMatchesPage = ({ viewMine = false }) => {
-    const navigate = useNavigate();
     const { me, userList } = useUsers();
     const { matchHistory, isLoading: isMatchesLoading, isError } = useMatches();
     const [isMeOnly, setIsMeOnly] = useState(viewMine);
@@ -23,80 +24,53 @@ export const UserMatchesPage = ({ viewMine = false }) => {
         ? matchHistory.filter(match => isMyMatch(match))
         : matchHistory;
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        return new Date(dateString).toLocaleDateString('ko-kr', {
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-    }
+    const groupedMatches = useMemo(() => {
+        if (!filteredData) return [];
+
+        const groups = filteredData.reduce((acc, cur) => {
+            const dateKey = timeZone(cur.matchDate).date;
+            if (!acc[dateKey]) acc[dateKey] = [];
+            acc[dateKey].push(cur);
+            return acc;
+        }, {});
+
+        console.log(groups);
+
+        return Object.entries(groups).map(([date, list]) => ({ date, list }));
+    }, [filteredData]);
+
+    console.log(groupedMatches);
 
     return (
-        <div className="space-y-4">
-            {filteredData.length > 0 ? (
-                <>
-                    <div className="space-y-4 border-b border-slate-700 pb-4">
-                        <h1 className='pages-title'>경기 목록</h1>
-                        <div className="text-right">
-                            <Button size='sm' variant={isMeOnly ? 'blue' : 'gray'} onClick={() => setIsMeOnly(!isMeOnly)} >
-                                {isMeOnly ? '모든 경기' : '내 경기만'}
-                            </Button>
-                        </div>
-                    </div>
+        <div className='space-y-4'>
+            <div className="space-y-4 border-b border-slate-700 pb-4">
+                <h1 className='pages-title'>경기 목록</h1>
+                <div className="text-right">
+                    <Button size='sm' variant={isMeOnly ? 'blue' : 'gray'} onClick={() => setIsMeOnly(!isMeOnly)} >
+                        {isMeOnly ? '모든 경기' : '내 경기만'}
+                    </Button>
+                </div>
+            </div>
 
-                    {filteredData.map(match => {
-                        const isTeamAWin = match.winner === 'A';
-                        const teamAUsers = userList.filter(user => match.teamA.includes(user.id));
-                        const teamBUsers = userList.filter(user => match.teamB.includes(user.id));
+            {groupedMatches.map(({ date, list }) => (
+                <details key={date} className="space-y-4 group open:border-slate-600 open:bg-gray-600 open:rounded-2xl open:p-2 transition-all duration-300">
+                    <summary className="flex justify-between text- border-b border-slate-300 pb-2 list-none cursor-pointer group-open:text-white">
+                        <span>{date}</span>
+                        <span className="material-symbols-outlined [font-variation-settings:'FILL'_0,_'wght'_400,_'GRAD'_0,_'opsz'_2] group-open:[font-variation-settings:'FILL'_1,_'wght'_400,_'GRAD'_0,_'opsz'_2]">
+                            folder_open
+                        </span>
+                    </summary>
 
-                        return (
-                            <div key={match.id} className={`relative text-white ${isMyMatch(match) ? 'bg-blue-500' : 'bg-slate-700'} rounded-2xl overflow-hidden shadow-xl`}>
-                                <div className='flex items-center justify-between py-4 px-2'>
-                                    {/* Team A */}
-                                    <div className="flex-1 flex flex-col gap-2 items-start">
-                                        <span className={`text-xs text-white p-1 rounded ${isTeamAWin ? 'bg-blue-500' : 'bg-slate-300'}`}>
-                                            TEAM A {isTeamAWin && 'WIN'}
-                                        </span>
-                                        <div className="space-y-1">
-                                            {teamAUsers.length > 0
-                                                ? teamAUsers.map(user => <UserCard key={user.id} user={user} onNavigate={true} />)
-                                                : match.teamA.map(id => <div key={id} className="text-xs text-slate-500">Player {id}</div>)
-                                            }
-                                        </div>
-                                    </div>
-
-                                    {/* 경기 정보 */}
-                                    <div className='flex flex-col items-center justify-center px-4'>
-                                        <div className="text-2xl select-none">VS</div>
-                                        <div className="flex items-center gap-1 mt-1">
-                                            <span className="text-xs font-medium">Elo</span>
-                                            <span className="text-sm font-bold">+{match.eloDelta}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Team B */}
-                                    <div className="flex-1 flex flex-col gap-2 items-end text-right">
-                                        <span className={`text-xs text-white p-1 rounded ${!isTeamAWin ? 'bg-rose-500' : 'bg-slate-300'}`}>
-                                            TEAM B {!isTeamAWin && 'WIN'}
-                                        </span>
-                                        <div className="space-y-1">
-                                            {teamBUsers.length > 0
-                                                ? teamBUsers.map(user => <UserCard key={user.id} user={user} onNavigate={true} />)
-                                                : match.teamB.map(id => <div key={id} className="text-xs text-slate-500">Player {id}</div>)
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className='bg-slate-900 px-4 py-1 text-xs text-white text-center'>
-                                    {formatDate(match.matchDate)}
-                                </div>
+                    <div className="space-y-2">
+                        {list.map((match) => (
+                            <div key={match.matchId}>
+                                <MatchCard match={match} />
                             </div>
-                        );
-                    })}
-                </>
-            )
-                : <Loading type='error' message='진행된 경기가 없거나, 에러가 발생했습니다.' />
-            }
+                        ))}
+                    </div>
+                </details>
+            ))}
+
         </div>
     );
 }
